@@ -127,7 +127,7 @@ BindKey*
 Create_Terminal_Widget(struct st_terminal *get_term)
 {
     terminal = get_term;
-	return KEYS(g_object_new (TYPE_KEYS, NULL));
+	return KEYS(g_object_new (widget_get_type (), NULL));
 }
 
 static void

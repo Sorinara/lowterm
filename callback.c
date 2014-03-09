@@ -56,10 +56,16 @@ int event_mouse_press(GtkWidget *widget,GdkEventButton *event)
         tag;
     char *url_match,
          *cmd_run;
+    GtkBorder *style_border;
 
     switch(event->button){
         case 1:     // left mouse button press
-            vte_terminal_get_padding ((VteTerminal *)widget, &terminal_x, &terminal_y);
+            /* vte_terminal_get_padding ((VteTerminal *)widget, &terminal_x, &terminal_y); */
+            /* printf("OX: %d OY: %d\n",terminal_x, terminal_y); */
+            gtk_widget_style_get(widget, "inner-border", &style_border, NULL);
+            terminal_x = style_border->left + style_border->right;
+            terminal_y = style_border->top  + style_border->bottom;
+            /* printf("NX: %d NY: %d\n",terminal_x, terminal_y); */
             url_match = vte_terminal_match_check ((VteTerminal *)widget,
                     (event->x - terminal_y) / ((VteTerminal *)widget)->char_width,
                     (event->y - terminal_y) / ((VteTerminal *)widget)->char_height,

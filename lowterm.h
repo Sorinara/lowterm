@@ -26,7 +26,6 @@
 #define ON 1
 #define OFF 0
 
-#define TYPE_KEYS            (widget_get_type ())
 #define KEYS(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_KEYS, BindKey))
 #define KEYS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_KEYS, BindKeyClass))
 #define IS_KEYS(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_KEYS))
