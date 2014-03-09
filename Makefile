@@ -8,7 +8,7 @@ CFLAGS = -Wall -g $(INCLUDE)
 LIBS = `pkg-config --cflags --libs gtk+-2.0 gthread-2.0` -lvte -lconfuse -lrt  -lX11
 
 APP_NAME = lowterm 
-OBJS = main.c keybind.c callback.c get_conf.c set_conf.c  terminal.c
+OBJS = main.c widget.c callback.c config.c terminal.c action.c
 SRCS = main.c
 
 APP_NAME : $(OBJS)

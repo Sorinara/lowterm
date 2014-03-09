@@ -1,162 +1,144 @@
 #include "lowterm.h"
 
-#define Move_Val 30
-
-int
-Terminal_Show_Hide
-(BindKey *object,struct st_terminal *term_head)
+int Terminal_Set(struct st_terminal term)
 {
-    /* 제일 처음 시작할때는 main 함수에서
-     * NULL 로 시작 하므로 */
-    if(object == NULL){
+	VteTerminalAntiAlias antialias = VTE_ANTI_ALIAS_USE_DEFAULT;
+   	PangoFontDescription *p_font_fd;
+	GdkColor terminal_fg_color,
+             terminal_bg_color;
+	GtkAccelGroup *accel_group;
+	GClosure *copy,
+             *paste;
+	/* TODO: break data(?) GtkAccelGroup, PangoFontDescription */
 
-        usleep(250000);
-        /* 일단 터미널과 윈도우 위젯들을 보여준다 */
-        gtk_widget_show_all(term_head->object->window);
-        //gtk_widget_show(term_head->object->window);
-        //gtk_widget_show(term_head->object->terminal);
+    /* proterty */
+    gtk_window_set_title(GTK_WINDOW(term.object->window), term.config.name);
+    gtk_window_set_role(GTK_WINDOW(term.object->window), term.config.name);
+    gtk_window_set_decorated(GTK_WINDOW(term.object->window), FALSE);
 
-        /* 감추게 FALSE 이면 감추게 한다 
-         * 걍 gtk_widget_show를 쓰면 안되는 이유가 끈기기 때문에
-         * 이렇게 따로 gtk_widget_hide를 써야 한다 */
-        if(term_head->config.show_hide == FALSE){
-            //gtk_widget_hide(term_head->object->terminal);
-            //gtk_widget_hide(term_head->object->window);
-            gtk_widget_hide_all(term_head->object->window);
-        }
+	/* window position init */
+	gtk_window_move(GTK_WINDOW(term.object->window),term.config.win_start_x, term.config.win_start_y);
 
-        return 2;
+    /* privent brake terminal */
+	gtk_widget_set_size_request(term.object->window,term.config.win_width, term.config.win_height);
+	gtk_widget_set_size_request(term.object->terminal,term.config.win_width, term.config.win_height);
+
+    /* window role->widget.c */
+	/* window layer */
+	if(term.config.all_workspace_view == TRUE){
+		/* print all workspace */
+		gtk_window_stick(GTK_WINDOW(term.object->window));
     }
 
-    int i=0,keycode;
-    struct st_terminal term;
-
-    if(term_head->index == 0){
-
+	/* hide taskbar (default TRUE) */
+	if(term.config.taskbar_view == FALSE){
+		gtk_window_set_skip_taskbar_hint(GTK_WINDOW(term.object->window), TRUE);
     }
 
-    if(object->onoff == OFF){
-        gtk_window_set_default_size(GTK_WINDOW (object->window),
-                                    object->mother->config.win_width,object->mother->config.win_height);
-        Terminal_Window_Move(object->window,
-                             object->mother->config.win_start_x,object->mother->config.win_start_y,
-                             "Show",object->mother->config.ani_start_place);
+	/* default window manager */
+	if(term.config.layer == 1){
+ 		/* create above window (단 윈도 매니져가 우선) */
+		gtk_window_set_keep_above(GTK_WINDOW(term.object->window), TRUE);
+    }else if(term.config.layer==0){
+ 		/* create below window */
+		gtk_window_set_keep_below(GTK_WINDOW(term.object->window), TRUE);
+		gtk_window_set_resizable(GTK_WINDOW(term.object->window), FALSE);
+	}
 
-        //gdk_flush();
-        /* 이동시 바로 커서가 이동하게 하기 위해서 */
-        gtk_widget_show(object->terminal);
-        gtk_widget_show(object->window);
-
-        gtk_window_present(GTK_WINDOW (object->window));
-        //gtk_widget_grab_focus(object->terminal);
-        gtk_widget_grab_focus(object->window);
-        object->onoff = ON;
-    }	
-    else{
-        Terminal_Window_Move(object->window,
-                             object->mother->config.win_start_x,object->mother->config.win_start_y,
-                             "Hide",object->mother->config.ani_end_place);
-        gtk_widget_hide(object->window);
-        gtk_widget_hide(object->terminal);
-
-        object->onoff = OFF;
+	/* show hide status */
+	if(term.config.show_hide == FALSE){
+		term.object->onoff = OFF;
     }
 
-    return 0;
-}
+	/* set font/antialias */
+	if(strcmp(term.config.font, "") != 0){
+		p_font_fd = pango_font_description_from_string(term.config.font);
 
-int 
-Terminal_Window_Move
-(GtkWidget *window,int pos_x,int pos_y,char *status,char *direction)
-{
-    GdkScreen *gscr;
-    int scr_size_x,
-        scr_size_y;
-    int i;
+		if(term.config.antialias == TRUE){
+			vte_terminal_set_font(VTE_TERMINAL(term.object->terminal), p_font_fd);
+            /* vte_terminal_set_font_full(VTE_TERMINAL(term.object->terminal), p_font_fd, antialias); */
+        }else{
+			vte_terminal_set_font(VTE_TERMINAL(term.object->terminal), p_font_fd);
+        }
+	}
 
-    if(direction == NULL)
-        return -1;
+	/* set forcus (TODO: modify TRUE FALSE ) */
+	if(term.config.accept_focus == FALSE){
+		gtk_window_set_accept_focus(GTK_WINDOW(term.object->window), FALSE);
+        gtk_window_set_urgency_hint(GTK_WINDOW(term.object->window), FALSE);
+        gtk_window_set_focus_on_map(GTK_WINDOW(term.object->window), FALSE);
+	}
 
-    if(status == NULL)
-        return -1;
-
-    /* get screen size */
-    gscr = gdk_screen_get_default();
-    scr_size_x = gdk_screen_get_width(gscr);
-    scr_size_y = gdk_screen_get_height(gscr);
-
-    //printf("%s %s\n",status,direction);
-    if(strcmp(status,"Show") == 0){
-        /* win
-         * ^
-         * down */
-        if(strcmp(direction,"up") == 0){
-            for(i = scr_size_y - pos_y;i >= pos_y; i-= Move_Val){
-                gtk_window_move(GTK_WINDOW(window),pos_x,i);
-                gdk_flush();
-            }
-        }
-        /* up
-         * v
-         * win */
-        else if(strcmp(direction,"down") == 0){
-            for(i = 0;i <= pos_y; i+= Move_Val){
-                gtk_window_move(GTK_WINDOW(window),pos_x,i);
-                gdk_flush();
-            }
-        }
-        /* left <- scr_size_x*/
-        else if(strcmp(direction,"left") == 0){
-            for(i = scr_size_x - pos_x;i >= pos_x;i -= Move_Val){
-                gtk_window_move(GTK_WINDOW(window),i,pos_y);
-                gdk_flush();
-            }
-        }
-        /* 0(start_x) -> right */
-        else if(strcmp(direction,"right") == 0){
-            for(i=0;i<=pos_x;i += Move_Val){
-                gtk_window_move(GTK_WINDOW(window),i,pos_y);
-                gdk_flush();
-            }
-        }
-
-        /* 원위치로 이동 */
-        gtk_window_move(GTK_WINDOW (window),pos_x,pos_y);
-    }
-    else if(strcmp(status,"Hide") == 0){
-        /* win
-         * ^
-         * scr_size_y */
-        if(strcmp(direction,"up") == 0){
-            for(i = pos_y;i >= 0; i-= Move_Val){
-                gtk_window_move(GTK_WINDOW(window),pos_x,i);
-                gdk_flush();
-            }
-        }
-        /* win
-         * v
-         * scr_size_y */
-        else if(strcmp(direction,"down") == 0){
-            for(i = pos_y;i <= scr_size_y;i += Move_Val){
-                gtk_window_move(GTK_WINDOW(window),pos_x,i);
-                gdk_flush();
-            }
-        }
-        /* 0(start_x) <- win */
-        else if(strcmp(direction,"left") == 0){
-            for(i=pos_x;i>=0;i -= Move_Val){
-                gtk_window_move(GTK_WINDOW(window),i,pos_y);
-                gdk_flush();
-            }
-        }
-        /* win -> scr_size_x */
-        else if(strcmp(direction,"right") == 0){
-            for(i=pos_x;i<=scr_size_x;i += Move_Val){
-                gtk_window_move(GTK_WINDOW(window),i,pos_y);
-                gdk_flush();
-            }
-        }
+	/* hide parger */
+	if(term.config.skip_pager == TRUE){
+		gtk_window_set_skip_pager_hint(GTK_WINDOW(term.object->window), TRUE);
     }
 
-    return 0;
+	/* font bold (default TRUE) */
+	vte_terminal_set_allow_bold(VTE_TERMINAL(term.object->terminal), term.config.font_bold);
+
+	/* locale */
+	if(strcmp(term.config.locale,"")!=0){
+		vte_terminal_set_encoding(VTE_TERMINAL(term.object->terminal), term.config.locale);
+    }
+
+	/* bell */
+	vte_terminal_set_audible_bell(VTE_TERMINAL(term.object->terminal), term.config.audio_bell);
+
+	/* mouse hide (No set) */
+	vte_terminal_set_mouse_autohide(VTE_TERMINAL(term.object->terminal), TRUE);
+
+	/* cusor blink (default FALSE) */
+    if(term.config.blink_curser == TRUE){
+	    vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(term.object->terminal), VTE_CURSOR_BLINK_ON);
+    }else if(term.config.blink_curser == TRUE){
+	    vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(term.object->terminal), VTE_CURSOR_BLINK_OFF);
+    }else{
+	    vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(term.object->terminal), VTE_CURSOR_BLINK_SYSTEM);
+    }
+
+	/*background image */
+	/* if(strcmp(term.config . bg_image,"")!=0)
+	    vte_terminal_set_background_image_file(VTE_TERMINAL(term.config.terminal), */
+
+	/* transparent */
+	vte_terminal_set_background_transparent(VTE_TERMINAL(term.object->terminal), TRUE);
+
+	/* saturation (contrast) */
+	vte_terminal_set_background_saturation(VTE_TERMINAL(term.object->terminal), term.config.bg_transparency);
+    
+	/* backspace, delete binding */
+	vte_terminal_set_backspace_binding(VTE_TERMINAL(term.object->terminal), VTE_ERASE_ASCII_DELETE);
+	vte_terminal_set_delete_binding(VTE_TERMINAL(term.object->terminal), VTE_ERASE_DELETE_SEQUENCE);
+
+	/* terminal color backgound,foreground */
+	terminal_fg_color . red 	= term.config.tx_red;
+	terminal_fg_color . green 	= term.config.tx_green;
+	terminal_fg_color . blue 	= term.config.tx_blue;
+	terminal_bg_color . red 	= term.config.bg_red;
+	terminal_bg_color . green 	= term.config.bg_green;
+	terminal_bg_color . blue 	= term.config.bg_blue;
+	vte_terminal_set_colors(VTE_TERMINAL(term.object->terminal), &terminal_fg_color, &terminal_bg_color, NULL, 0);
+
+	/* double-buffer (anti font fold) */
+	gtk_widget_set_double_buffered(term.object->terminal, term.config.double_buffer);
+	
+    /* hyperlink */
+    vte_terminal_match_add_gregex(VTE_TERMINAL(term.object->terminal), g_regex_new(HTTP_REGEXP, 0, 0, NULL), 0);
+
+	/* copy & paste */
+	accel_group = gtk_accel_group_new();
+	gtk_window_add_accel_group(GTK_WINDOW(term.object->window), accel_group);
+	
+	paste = g_cclosure_new_swap((GCallback) Terminal_Paste, term.object->terminal, NULL);
+    gtk_accel_group_connect(accel_group, 'v', GDK_CONTROL_MASK | GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE,paste);
+	
+	copy = g_cclosure_new_swap((GCallback) Terminal_Copy, term.object->terminal, NULL);
+ 	gtk_accel_group_connect(accel_group, 'c', GDK_CONTROL_MASK | GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE,copy);
+    /*
+    GClosure *quit;
+	quit = g_cclosure_new_swap((GCallback) gtk_main_quit,NULL,NULL);
+	gtk_accel_group_connect(accel_group,'q' , GDK_CONTROL_MASK | GDK_SHIFT_MASK ,GTK_ACCEL_VISIBLE,quit);
+    */
+	return 0;
 }
