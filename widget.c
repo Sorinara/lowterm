@@ -20,7 +20,7 @@ static void widget_class_finalize(GObject *object)
 	parent_class->finalize(G_OBJECT(object));
 }/*}}}*/
 
-/* 위젯을 만들때 필요한 grab키를 정의해 놓는다 */
+/* register user define key */
 static void widget_key_grab(int key_code, GdkWindow *root)
 {/*{{{*/
 	gdk_error_trap_push();
@@ -45,6 +45,7 @@ static GdkFilterReturn widget_key_handler(GdkXEvent *xevent, GdkEvent *event, gp
 	XEvent *xev;
 	XKeyEvent *key;
 
+    /* fprintf(stderr, "Key (%d) %d\n", xev->type, ((BindKey *)data)->keycode); */
 	xev = (XEvent *)xevent;
 	if(xev->type != KeyPress){
 		return GDK_FILTER_CONTINUE;
@@ -52,7 +53,7 @@ static GdkFilterReturn widget_key_handler(GdkXEvent *xevent, GdkEvent *event, gp
 
 	key = (XKeyEvent *)xevent;
 
-	if(key->keycode ==((BindKey *)data)->keycode){
+	if(key->keycode == ((BindKey *)data)->keycode){
         g_signal_emit(data,((BindKey *)data)->signal, 0, 0);
 		return GDK_FILTER_REMOVE;
 	}
@@ -60,6 +61,7 @@ static GdkFilterReturn widget_key_handler(GdkXEvent *xevent, GdkEvent *event, gp
     return GDK_FILTER_CONTINUE;
 }/*}}}*/
 
+/* register user key event */
 static void widget_class(BindKeyClass *klass)
 {/*{{{*/
 	GObjectClass *object_class;
@@ -106,13 +108,13 @@ static void widget_instance(BindKey *object)
                                    NULL);
     g_strfreev(arg);
 
-    /*시그널 이것도 상당히 문제가 크다 destroy와 child-exited*/
-    g_signal_connect(object,"BindKey_Press",G_CALLBACK(Terminal_Show_Hide),terminal);
-    g_signal_connect(object->terminal,"button-press-event",G_CALLBACK(Terminal_Mouse_Click),terminal);
-    g_signal_connect(object->terminal,"child-exited",G_CALLBACK(Terminal_Exit),terminal);
-    gtk_container_add(GTK_CONTAINER(object->window),object->terminal);
+    /* TODO: destroy, child-exited*/
+    g_signal_connect(object, "BindKey_Press", G_CALLBACK(Terminal_Show_Hide), terminal);
+    g_signal_connect(object->terminal, "button-press-event", G_CALLBACK(Terminal_Mouse_Click), terminal);
+    g_signal_connect(object->terminal, "child-exited", G_CALLBACK(Terminal_Exit), terminal);
+    gtk_container_add(GTK_CONTAINER(object->window), object->terminal);
 
-	object->keycode = XKeysymToKeycode(GDK_DISPLAY(),XStringToKeysym(terminal->config.bd_key));
+	object->keycode = XKeysymToKeycode(GDK_DISPLAY(), XStringToKeysym(terminal->config.bd_key));
     object->signal  = class_signal;
     object->onoff   = terminal->config.show_hide;
 

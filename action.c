@@ -1,6 +1,7 @@
 #include "lowterm.h"
 
-#define  Move_Val 30
+#define  MOVE_UNIT_SIZE 25
+#define  WINDOW_DELAY   8000
 
 int Terminal_Window_Move(GtkWidget *window, int pos_x, int pos_y, char *status, char *direction)
 {/*{{{*/
@@ -25,65 +26,69 @@ int Terminal_Window_Move(GtkWidget *window, int pos_x, int pos_y, char *status, 
     //printf("%s %s\n", status, direction);
     if(strcmp(status, "Show") == 0){
         /* from down to up */
-        if(strcmp(direction, "up") == 0){
-            for(i = scr_size_y - pos_y;i >= pos_y; i-= Move_Val){
-                gtk_window_move(GTK_WINDOW(window), pos_x, i);
-                gdk_flush();
-            }
-        }
+        /* if(strcmp(direction, "up") == 0){ */
+        /*     for(i = scr_size_y - pos_y;i >= pos_y; i-= MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), pos_x, i); */
+        /*         gdk_flush(); */
+        /*     } */
+        /* } */
         /* from up to down */
-        else if(strcmp(direction, "down") == 0){
-            for(i = 0;i <= pos_y; i+= Move_Val){
-                gtk_window_move(GTK_WINDOW(window), pos_x, i);
-                gdk_flush();
-            }
-        }
+        /* else if(strcmp(direction, "down") == 0){ */
+        /*     for(i = 0;i <= pos_y; i+= MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), pos_x, i); */
+        /*         gdk_flush(); */
+        /*     } */
+        /* } */
         /* from right to left */
-        else if(strcmp(direction, "left") == 0){
-            for(i = scr_size_x - pos_x;i >= pos_x;i -= Move_Val){
-                gtk_window_move(GTK_WINDOW(window), i, pos_y);
-                gdk_flush();
-            }
-        }
+        /* else if(strcmp(direction, "left") == 0){ */
+        /*     for(i = scr_size_x - pos_x;i >= pos_x;i -= MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), i, pos_y); */
+        /*         gdk_flush(); */
+        /*     } */
+        /* } */
         /* from right to left */
-        else if(strcmp(direction, "right") == 0){
-            for(i=0;i<=pos_x;i += Move_Val){
-                gtk_window_move(GTK_WINDOW(window), i, pos_y);
-                gdk_flush();
-            }
-        }
+        /* else if(strcmp(direction, "right") == 0){ */
+        /*     for(i=0;i<=pos_x;i += MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), i, pos_y); */
+        /*         gdk_flush(); */
+        /*     } */
+        /* } */
 
         /* 원위치로 이동 */
         gtk_window_move(GTK_WINDOW(window), pos_x, pos_y);
     }else if(strcmp(status, "Hide") == 0){
         /* from down to up */
-        if(strcmp(direction, "up") == 0){
-            for(i = pos_y;i >= 0; i-= Move_Val){
-                gtk_window_move(GTK_WINDOW(window), pos_x, i);
-                gdk_flush();
-            }
-        }
+        /* if(strcmp(direction, "up") == 0){ */
+        /*     for(i = pos_y;i >= 0; i-= MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), pos_x, i); */
+        /*         gdk_flush(); */
+        /*         usleep(WINDOW_DELAY); */
+        /*     } */
+        /* } */
         /* from up to down */
-        else if(strcmp(direction, "down") == 0){
-            for(i = pos_y;i <= scr_size_y;i += Move_Val){
-                gtk_window_move(GTK_WINDOW(window), pos_x, i);
-                gdk_flush();
-            }
-        }
+        /* else if(strcmp(direction, "down") == 0){ */
+        /*     for(i = pos_y;i <= scr_size_y;i += MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), pos_x, i); */
+        /*         gdk_flush(); */
+        /*         usleep(WINDOW_DELAY); */
+        /*     } */
+        /* } */
         /* from right to left */
-        else if(strcmp(direction, "left") == 0){
-            for(i=pos_x;i>=0;i -= Move_Val){
-                gtk_window_move(GTK_WINDOW(window), i, pos_y);
-                gdk_flush();
-            }
-        }
+        /* else if(strcmp(direction, "left") == 0){ */
+        /*     for(i=pos_x;i>=0;i -= MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), i, pos_y); */
+        /*         gdk_flush(); */
+        /*         usleep(WINDOW_DELAY); */
+        /*     } */
+        /* } */
         /* from right to left */
-        else if(strcmp(direction, "right") == 0){
-            for(i=pos_x;i<=scr_size_x;i += Move_Val){
-                gtk_window_move(GTK_WINDOW(window), i, pos_y);
-                gdk_flush();
-            }
-        }
+        /* else if(strcmp(direction, "right") == 0){ */
+        /*     for(i=pos_x;i<=scr_size_x;i += MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), i, pos_y); */
+        /*         gdk_flush(); */
+        /*         usleep(WINDOW_DELAY); */
+        /*     } */
+        /* } */
     }
 
     return 0;
