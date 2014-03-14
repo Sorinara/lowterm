@@ -1,19 +1,107 @@
 #include "lowterm.h"
 
-#define BROWSER_NAME        "google-chrome"
-#define IMAGEVIEWER_NAME    "display"
-
-void Terminal_Copy(GtkWidget *widget, void *data) 	
+void terminal_mouse_copy(GtkWidget *widget) 	
 {/*{{{*/
     vte_terminal_copy_clipboard((VteTerminal *)widget);
 }/*}}}*/
 
-void Terminal_Paste(GtkWidget *widget, void *data)
+void terminal_mouse_paste(GtkWidget *widget)
 {/*{{{*/
     vte_terminal_paste_clipboard((VteTerminal *)widget);
 }/*}}}*/
 
-int  Terminal_Mouse_Click(GtkWidget *widget, GdkEventButton *event)
+int  terminal_window_move(GtkWidget *window, int pos_x, int pos_y, char *status, char *direction)
+{/*{{{*/
+    GdkScreen *gscr;
+    int scr_size_x,
+        scr_size_y;
+    int i;
+
+    if(direction == NULL){
+        return -1;
+    }
+
+    if(status == NULL){
+        return -1;
+    }
+
+    /* get screen size */
+    gscr        = gdk_screen_get_default();
+    scr_size_x  = gdk_screen_get_width(gscr);
+    scr_size_y  = gdk_screen_get_height(gscr);
+
+    //printf("%s %s\n", status, direction);
+    if(strcmp(status, "Show") == 0){
+        /* from down to up */
+        /* if(strcmp(direction, "up") == 0){ */
+        /*     for(i = scr_size_y - pos_y;i >= pos_y; i-= MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), pos_x, i); */
+        /*         gdk_flush(); */
+        /*     } */
+        /* } */
+        /* from up to down */
+        /* else if(strcmp(direction, "down") == 0){ */
+        /*     for(i = 0;i <= pos_y; i+= MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), pos_x, i); */
+        /*         gdk_flush(); */
+        /*     } */
+        /* } */
+        /* from right to left */
+        /* else if(strcmp(direction, "left") == 0){ */
+        /*     for(i = scr_size_x - pos_x;i >= pos_x;i -= MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), i, pos_y); */
+        /*         gdk_flush(); */
+        /*     } */
+        /* } */
+        /* from right to left */
+        /* else if(strcmp(direction, "right") == 0){ */
+        /*     for(i=0;i<=pos_x;i += MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), i, pos_y); */
+        /*         gdk_flush(); */
+        /*     } */
+        /* } */
+
+        /* 원위치로 이동 */
+        gtk_window_move(GTK_WINDOW(window), pos_x, pos_y);
+    }else if(strcmp(status, "Hide") == 0){
+        /* from down to up */
+        /* if(strcmp(direction, "up") == 0){ */
+        /*     for(i = pos_y;i >= 0; i-= MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), pos_x, i); */
+        /*         gdk_flush(); */
+        /*         usleep(WINDOW_DELAY); */
+        /*     } */
+        /* } */
+        /* from up to down */
+        /* else if(strcmp(direction, "down") == 0){ */
+        /*     for(i = pos_y;i <= scr_size_y;i += MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), pos_x, i); */
+        /*         gdk_flush(); */
+        /*         usleep(WINDOW_DELAY); */
+        /*     } */
+        /* } */
+        /* from right to left */
+        /* else if(strcmp(direction, "left") == 0){ */
+        /*     for(i=pos_x;i>=0;i -= MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), i, pos_y); */
+        /*         gdk_flush(); */
+        /*         usleep(WINDOW_DELAY); */
+        /*     } */
+        /* } */
+        /* from right to left */
+        /* else if(strcmp(direction, "right") == 0){ */
+        /*     for(i=pos_x;i<=scr_size_x;i += MOVE_UNIT_SIZE){ */
+        /*         gtk_window_move(GTK_WINDOW(window), i, pos_y); */
+        /*         gdk_flush(); */
+        /*         usleep(WINDOW_DELAY); */
+        /*     } */
+        /* } */
+    }
+
+    return 0;
+}/*}}}*/
+
+int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
 {/*{{{*/
     int terminal_x,
         terminal_y,
@@ -36,7 +124,7 @@ int  Terminal_Mouse_Click(GtkWidget *widget, GdkEventButton *event)
                     &tag);
 
             if(url_match == NULL)
-                Terminal_Copy(widget, NULL);
+                terminal_mouse_copy(widget);
             else{
                 if((cmd_run = (char *)calloc(strlen(url_match) + strlen(BROWSER_NAME) + 5, sizeof(char))) == NULL){
                         perror("Memroy Alloc Failed");
@@ -61,7 +149,7 @@ int  Terminal_Mouse_Click(GtkWidget *widget, GdkEventButton *event)
         case 2:     // mouse wheel press
             break;
         case 3:     // right mouse button press
-            Terminal_Paste(widget, NULL);
+            terminal_mouse_paste(widget);
             break;
     }
 
@@ -69,12 +157,42 @@ int  Terminal_Mouse_Click(GtkWidget *widget, GdkEventButton *event)
     return FALSE;
 }/*}}}*/
 
-void Terminal_Exit(GtkWidget *g_widget, struct st_terminal *get_value)
+void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
 {/*{{{*/
-    gtk_widget_destroy(get_value -> object -> terminal);
-    gtk_widget_destroy(get_value -> object -> window);
+    Terminal *terminal;
+
+    terminal = (Terminal *)user_data_param;
+
+    if(terminal->onoff == ON){
+        gtk_window_set_default_size(GTK_WINDOW(terminal->window), terminal->config.win_width, terminal->config.win_height);
+        terminal_window_move(terminal->window, terminal->config.win_start_x, terminal->config.win_start_y,
+                             "Show", terminal->config.ani_start_place);
+
+        //gdk_flush();
+        /* 이동시 바로 커서가 이동하게 하기 위해서 */
+        gtk_widget_show(terminal->vte);
+        gtk_widget_show(terminal->window);
+
+        gtk_window_present(GTK_WINDOW(terminal->window));
+        //gtk_widget_grab_focus(terminal->vte);
+        gtk_widget_grab_focus(terminal->window);
+        terminal->onoff = OFF;
+    }else{
+        terminal_window_move(terminal->window, terminal->config.win_start_x, terminal->config.win_start_y,
+                             "Hide", terminal->config.ani_end_place);
+        gtk_widget_hide(terminal->window);
+        gtk_widget_hide(terminal->vte);
+
+        terminal->onoff = ON;
+    }
+}/*}}}*/
+
+void Terminal_Exit(GtkWidget *widget, Terminal *terminal)
+{/*{{{*/
+    gtk_widget_destroy(terminal->vte);
+    gtk_widget_destroy(terminal->window);
 
     /* key bind, malloc free 하는거 나중에 추가하셈 */
-    //g_free(get_value);
+    //g_free(terminal);
     //gtk_main_quit();
 }/*}}}*/
