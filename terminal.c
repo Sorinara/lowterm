@@ -38,7 +38,7 @@ void Terminal_New(int terminal_id, Terminal *terminal)
     gtk_container_add(GTK_CONTAINER(terminal->window), terminal->vte);
 
     if(error_code = Key_Filter(terminal->window, event_name, terminal->config.bd_key_mask, terminal->config.bd_key, Terminal_Show_Hide, &(terminal->key_data), terminal) != 0){
-        Key_Filter_Debug(error_code);
+        key_filter_debug(error_code);
         return ;
     }
 }/*}}}*/

@@ -127,8 +127,8 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
                 terminal_mouse_copy(widget);
             else{
                 if((cmd_run = (char *)calloc(strlen(url_match) + strlen(BROWSER_NAME) + 5, sizeof(char))) == NULL){
-                        perror("Memroy Alloc Failed");
-                        exit(1);
+                    perror("Memroy Alloc Failed");
+                    exit(1);
                 }
 
                 if(!(strcasecmp(url_match + strlen(url_match) - 3, "jpg"))  || \
@@ -137,8 +137,9 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
                    !(strcasecmp(url_match + strlen(url_match) - 3, "png"))     ){
                     sprintf(cmd_run, "%s '%s'&", IMAGEVIEWER_NAME, url_match);
                 }
-                else
+                else{
                     sprintf(cmd_run, "%s '%s'&", BROWSER_NAME, url_match);
+                }
 
                 system(cmd_run);
                 free(cmd_run);

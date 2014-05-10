@@ -35,7 +35,7 @@ int key_filter_grab_code(char *key_symbol_string, KeyEventData *key_data)
     return 0;
 }/*}}}*/
 
-void key_filter_grab_parse_delmiter(char *string, int *string_length, char **next)
+void key_filter_grab_mask_delmiter(char *string, int *string_length, char **next)
 {/*{{{*/
     char *delimiter_pointer;
 
@@ -55,7 +55,7 @@ void key_filter_grab_parse_delmiter(char *string, int *string_length, char **nex
     *next           = string + *string_length + 1;
 }/*}}}*/
 
-int key_filter_grab_parse_mask(char *key_chain, int key_string_length, KeyEventData *key_data)
+int key_filter_grab_mask_parse(char *key_chain, int key_string_length, KeyEventData *key_data)
 {/*{{{*/
     unsigned int mask_old;
     int return_mask;
@@ -147,9 +147,9 @@ int key_filter_grab_mask(char *key_mask_chain, KeyEventData *key_data)
     key_data->mask  = 0;
 
     while(*string_start != '\0'){
-        key_filter_grab_parse_delmiter(string_start, &key_name_length, &string_next);
+        key_filter_grab_mask_delmiter(string_start, &key_name_length, &string_next);
         /* fprintf(stderr, "Delimiter : Now[%s] Next[%s]\n", string_start, string_next); */
-        if(key_filter_grab_parse_mask(string_start, key_name_length, key_data) == 1){
+        if(key_filter_grab_mask_parse(string_start, key_name_length, key_data) == 1){
             return KEY_CODE_MASK_UNKNOWN;
         }
 
@@ -184,6 +184,24 @@ int key_filter_grab(GdkWindow *root_window, char *mask, char *key_symbol_string,
     return 0;
 }/*}}}*/
 
+void key_filter_debug_print(int error_code, int error_bit, const char *error_message)
+{/*{{{*/
+    if((error_code & error_bit) == error_bit){
+        fprintf(stderr, error_message);
+    }
+}/*}}}*/
+
+void key_filter_debug(int error_code)
+{/*{{{*/
+    key_filter_debug_print(error_code, KEY_CODE_FILTER_ERROR, "Key Filter, ");
+    key_filter_debug_print(error_code, KEY_CODE_GRAB_ERROR,   "Key Grab Error. another program grab key\n");
+    key_filter_debug_print(error_code, KEY_CODE_MASK_ERROR ,  "Key Mask Error, ");
+    key_filter_debug_print(error_code, KEY_CODE_MASK_UNKNOWN, "Unknown key mask\n");
+    key_filter_debug_print(error_code, KEY_CODE_UNKNOWN,      "Unknown key code\n");
+    key_filter_debug_print(error_code, KEY_SYMBOL_UNKNOWN,    "Unknown key symbol\n");
+    key_filter_debug_print(error_code, KEY_SYMBOL_EMPTY,      "key symbol is Empty\n");
+}/*}}}*/
+
 static GdkFilterReturn key_event_emiter(GdkXEvent *xevent, GdkEvent *event, gpointer event_data)
 {/*{{{*/
 	XEvent *xev;
@@ -207,24 +225,6 @@ static GdkFilterReturn key_event_emiter(GdkXEvent *xevent, GdkEvent *event, gpoi
 	}
 
     return GDK_FILTER_CONTINUE;
-}/*}}}*/
-
-void key_filter_debug_print(int error_code, int error_bit, const char *error_message)
-{/*{{{*/
-    if((error_code & error_bit) == error_bit){
-        fprintf(stderr, error_message);
-    }
-}/*}}}*/
-
-void Key_Filter_Debug(int error_code)
-{/*{{{*/
-    key_filter_debug_print(error_code, KEY_CODE_FILTER_ERROR, "Key Filter, ");
-    key_filter_debug_print(error_code, KEY_CODE_GRAB_ERROR,   "Key Grab Error. another program grab key\n");
-    key_filter_debug_print(error_code, KEY_CODE_MASK_ERROR ,  "Key Mask Error, ");
-    key_filter_debug_print(error_code, KEY_CODE_MASK_UNKNOWN, "Unknown key mask\n");
-    key_filter_debug_print(error_code, KEY_CODE_UNKNOWN,      "Unknown key code\n");
-    key_filter_debug_print(error_code, KEY_SYMBOL_UNKNOWN,    "Unknown key symbol\n");
-    key_filter_debug_print(error_code, KEY_SYMBOL_EMPTY,      "key symbol is Empty\n");
 }/*}}}*/
 
 int Key_Filter(GtkWidget *widget, const char *event_name, char *mask, char *key_symbol_string, void event_handler(GtkWidget *, gpointer), KeyEventData *key_data, void *user_data)

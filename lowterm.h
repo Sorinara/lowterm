@@ -33,7 +33,8 @@
 /* TODO: for user - config 파일 내부에 설정이 가능하도록 할것 */
 #define  PROCESS_NAME           "lowterm"
 #define  HTTP_REGEXP            "(ftp|(htt(p|ps)))://[-a-zA-Z0-9.?$%&/=_~#.,:;+]*"
-#define  BROWSER_NAME           "google-chrome"
+//#define  BROWSER_NAME           "google-chrome"
+#define  BROWSER_NAME           "firefox"
 #define  IMAGEVIEWER_NAME       "display"
 #define  MOVE_UNIT_SIZE         25
 #define  WINDOW_DELAY           8000
