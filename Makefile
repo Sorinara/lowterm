@@ -21,4 +21,4 @@ clean:
 	rm -rf *.o $(APP_NAME)
 
 install:
-	cp main ~/bin/lowterm -f
+	cp $(APP_NAME) ~/bin/lowterm -f

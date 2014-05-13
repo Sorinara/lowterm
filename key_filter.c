@@ -217,9 +217,18 @@ static GdkFilterReturn key_event_emiter(GdkXEvent *xevent, GdkEvent *event, gpoi
 
 	key      = (XKeyEvent *)xevent;
     key_data = (KeyEventData *)event_data;
+    /* fprintf(stderr, "Key (Code: %u, Mask:%u) %s\n", key_data->code, key_data->mask, (xev->type - 1) ? "Release" : "Press"); */
+    /* fprintf(stderr, "Key (Code: %u, Mask:%u)\n", key->keycode, key->state); */
+    /* fprintf(stderr, "-      %p %p %p\n", key_data->widget, key_data->signal_id, key_data->user_data); */
 
-    /* fprintf(stderr, "Key (C:%u/KE:%u) %s\n", key->keycode, key_data->code, (xev->type - 1) ? "Release" : "Press"); */
-	if(key->keycode == key_data->code){
+	if(key->keycode == key_data->code && \
+       key->state   == key_data->mask){
+        // 여기서 이런식으로 Level2 페이지(?)를 넣어서 쓴다는 생각?
+        // key_filter_get(page, &data, 2, key_data->code, key_data->mask); 
+        // 어짜피 고정이나까 이중으로 하고 치우지 뭣하러 페이지를 만들 생각을 했을까??
+        // TODO: 그러니까... 여기서 
+        // 1, keycode에 대한 값을 가져옴.
+        // 2, mask에 맞는 terminal 주소를 넘여야 되?!
         g_signal_emit(key_data->widget, key_data->signal_id, 0, key_data->user_data);
 		return GDK_FILTER_REMOVE;
 	}
@@ -227,6 +236,8 @@ static GdkFilterReturn key_event_emiter(GdkXEvent *xevent, GdkEvent *event, gpoi
     return GDK_FILTER_CONTINUE;
 }/*}}}*/
 
+/* 새로운 터미널이 생성될때마다, show/hide 키 옵션으로 이게 실행됨. 
+ * 핸들러로는 Terminal_Show_Hide(), user_data로는 terminal이 사용된다. */
 int Key_Filter(GtkWidget *widget, const char *event_name, char *mask, char *key_symbol_string, void event_handler(GtkWidget *, gpointer), KeyEventData *key_data, void *user_data)
 {/*{{{*/
     GdkWindow *root_window;
@@ -239,14 +250,16 @@ int Key_Filter(GtkWidget *widget, const char *event_name, char *mask, char *key_
         return KEY_CODE_FILTER_ERROR | error_code;
     }
 
+    // TODO: page변수도 저장이 가능하게 해야함.
     key_data->user_data = user_data;
 
     gdk_window_add_filter(root_window, key_event_emiter, key_data);
 
-    /* register event and connect */
-    /*                              1               2               3          4   5     6                  7                 8      9      10          */
+    /* register event and connect     1,             2,                 3, 4,    5,    6,    7,           8, 9,            10 */
     signal_id = g_signal_new(event_name, G_TYPE_OBJECT, G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 1, G_TYPE_POINTER);
     g_signal_connect(widget, event_name, G_CALLBACK(event_handler), user_data);
+    // key_filter_init(&page, 2, 256, 256);
+    // key_filter_set(&page, key_data, 2, key_data->code, key_data->mask); 
 
     /* save data for user */
     key_data->widget    = widget;

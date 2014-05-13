@@ -164,6 +164,7 @@ void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
 
     terminal = (Terminal *)user_data_param;
 
+    fprintf(stderr, "Terminal address : %p\n", user_data_param);
     if(terminal->onoff == ON){
         gtk_window_set_default_size(GTK_WINDOW(terminal->window), terminal->config.win_width, terminal->config.win_height);
         terminal_window_move(terminal->window, terminal->config.win_start_x, terminal->config.win_start_y,
