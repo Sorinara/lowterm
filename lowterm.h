@@ -5,6 +5,9 @@
 #include <gdk/gdkx.h>
 #include <vte-0.0/vte/vte.h>
 #include <confuse.h>
+#include <assert.h>
+
+#include "data.h"
 
 #define  EVENT_NAME_MAX         32
 
@@ -27,8 +30,6 @@
 #define  KEY_CODE_FILTER_ERROR  0x40
 
 #define  BOOL                   int
-#define  ON                     1
-#define  OFF                    0
 
 /* TODO: for user - config 파일 내부에 설정이 가능하도록 할것 */
 #define  PROCESS_NAME           "lowterm"
@@ -86,37 +87,45 @@ typedef struct _Config
     /* for new hot key module */
 } Config;/*}}}*/
 
-typedef struct _KeyEventData{
+typedef struct _KeyEvent{
     GtkWidget   *widget;
     guint        signal_id;
 
-    KeyCode      code;
-    unsigned int mask;
+    KeyCode      key_code;
+    unsigned int key_mask;
 
-    void *user_data;
-} KeyEventData;
+    void *handler_parameter;
+} KeyEvent;
 
 typedef struct _Terminal
 {
     GtkWidget *window,
               *vte;
-    int index,
-        onoff;
+    int id,
+        visible;
 
-    KeyEventData key_data;
+    KeyEvent key;
+    Stack *visible_list_pointer;
 
     Config config;
 } Terminal;
 
+typedef struct _LowTerm{
+    Terminal *terminal;
+    int terminal_count;
+
+    Stack visible_list;
+} LowTerm;
+
 /*  config.c */
-int  Config_Get(Terminal **term_cfg);
+int  Config_Get(LowTerm *lowterm);
 
 /* key_event.c */
 void Key_Filter_Debug(int error_code);
-int  Key_Filter(GtkWidget *widget, const char *event_name, char *mask, char *key_symbol_string, void event_handler(GtkWidget *, gpointer), KeyEventData *key_data, void *user_data);
+int  Key_Filter(GtkWidget *widget, const char *event_name, char *mask, char *key_symbol_string, void event_handler(GtkWidget *, gpointer), KeyEvent *key_data, void *user_data);
 
 /* terminal.c */
-void Terminal_New(int terminal_id, Terminal *terminal);
+void Terminal_New(int terminal_index, Terminal *terminal);
 void Terminal_Set(Terminal terminal);
 
 /* callback.c */

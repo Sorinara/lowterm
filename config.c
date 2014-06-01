@@ -1,14 +1,15 @@
 #include "lowterm.h"
 #include <malloc.h>
 
-int Config_Get(Terminal **terminal)
+int Config_Get(LowTerm *lowterm)
 {
 	char  config_file[CONFIG_FILE_PATH_MAX],
 	      *home_dirtory;
 	cfg_t *cfg,
           *cfg_terminal;
 	int   i,
-          terminal_count;
+          table_count;
+    Terminal *terminal;
 
 	cfg_opt_t terminal_opts[]={		//장기적으로 파싱 함수 내장할것/*{{{*/
 		CFG_STR("session_name", 				"temp", 	CFGF_NONE),
@@ -70,63 +71,69 @@ int Config_Get(Terminal **terminal)
 		return -2;
 	}
 
-	/* terminal_count 가지고 Malloc 하기 */
-	terminal_count = cfg_size(cfg, CONFIG_TITLE);
+	/* table_count 가지고 calloc 하기 */
+	table_count = cfg_size(cfg, CONFIG_TITLE);
 
-	if((*terminal = (Terminal *)malloc(sizeof(Terminal) * terminal_count)) == NULL){
+	if((lowterm->terminal = (Terminal *)calloc(table_count, sizeof(Terminal))) == NULL){
 		perror("Memory Allocation Failed");
 		return -3;
 	}
 
-	for(i = 0; i < terminal_count; i++){/*{{{*/
-		cfg_terminal = cfg_getnsec(cfg, CONFIG_TITLE, i);
+	for(i = 0; i < table_count; i++){/*{{{*/
+        terminal = lowterm->terminal + i;
+        /* printf("XX: %p %d/%d +%x\n", terminal, i, table_count, sizeof(Terminal) * i); */
+		if((cfg_terminal = cfg_getnsec(cfg, CONFIG_TITLE, i)) == NULL){
+            return -4;
+        }
 #ifdef DEBUG
 		fprintf(stderr, "session title %s\n", cfg_title(cfg_terminal));
 #endif
-        (*terminal)[i].index 			            = i;
+        terminal->id           			    = i;
 
         /* STRING  문자열 증발 방지 위해 strdup함수 사용 */
-        (*terminal)[i].config.name 			        = strdup(cfg_getstr(cfg_terminal,"session_name"));
-        (*terminal)[i].config.scr_opt 			    = strdup(cfg_getstr(cfg_terminal,"screen_options"));
-        (*terminal)[i].config.font 			        = strdup(cfg_getstr(cfg_terminal,"font"));
-        (*terminal)[i].config.bd_key 			    = strdup(cfg_getstr(cfg_terminal,"binding_key"));
-        (*terminal)[i].config.bd_key_mask           = strdup(cfg_getstr(cfg_terminal,"binding_key_mask"));
-        (*terminal)[i].config.locale 			    = strdup(cfg_getstr(cfg_terminal,"locale"));
-        (*terminal)[i].config.bg_image 		        = strdup(cfg_getstr(cfg_terminal,"background_image"));
-        (*terminal)[i].config.ani_start_place       = strdup(cfg_getstr(cfg_terminal,"ani_start_place"));
-        (*terminal)[i].config.ani_end_place         = strdup(cfg_getstr(cfg_terminal,"ani_end_place"));
+        terminal->config.name 			    = strdup(cfg_getstr(cfg_terminal,"session_name"));
+        terminal->config.scr_opt            = strdup(cfg_getstr(cfg_terminal,"screen_options"));
+        terminal->config.font 			    = strdup(cfg_getstr(cfg_terminal,"font"));
+        terminal->config.bd_key 		    = strdup(cfg_getstr(cfg_terminal,"binding_key"));
+        terminal->config.bd_key_mask        = strdup(cfg_getstr(cfg_terminal,"binding_key_mask"));
+        terminal->config.locale             = strdup(cfg_getstr(cfg_terminal,"locale"));
+        terminal->config.bg_image           = strdup(cfg_getstr(cfg_terminal,"background_image"));
+        terminal->config.ani_start_place    = strdup(cfg_getstr(cfg_terminal,"ani_start_place"));
+        terminal->config.ani_end_place      = strdup(cfg_getstr(cfg_terminal,"ani_end_place"));
 		
 		/* FLOAT */	
-		(*terminal)[i].config.bg_transparency 	    = cfg_getfloat(cfg_terminal,"background_transparency");
+		terminal->config.bg_transparency 	= cfg_getfloat(cfg_terminal,"background_transparency");
 
 		/* INTEGER */
-		(*terminal)[i].config.win_start_x 		    = cfg_getint(cfg_terminal,"start_x"); 
-		(*terminal)[i].config.win_start_y 		    = cfg_getint(cfg_terminal,"start_y");
-		(*terminal)[i].config.win_height 		    = cfg_getint(cfg_terminal,"height");
-		(*terminal)[i].config.win_width 		    = cfg_getint(cfg_terminal,"width");
-		(*terminal)[i].config.tx_red 			    = cfg_getint(cfg_terminal,"text_color_red");
-		(*terminal)[i].config.tx_green 		        = cfg_getint(cfg_terminal,"text_color_green");
-		(*terminal)[i].config.tx_blue 			    = cfg_getint(cfg_terminal,"text_color_blue");
-		(*terminal)[i].config.bg_red 			    = cfg_getint(cfg_terminal,"background_color_red");
-		(*terminal)[i].config.bg_blue 			    = cfg_getint(cfg_terminal,"background_color_blue");
-		(*terminal)[i].config.bg_green 		        = cfg_getint(cfg_terminal,"background_color_green");
-		(*terminal)[i].config.layer 			    = cfg_getint(cfg_terminal,"layer");
-        (*terminal)[i].config.ani_sleep_sec         = cfg_getint(cfg_terminal,"ani_sleep_sec");
+		terminal->config.win_start_x 		= cfg_getint(cfg_terminal,"start_x"); 
+		terminal->config.win_start_y 		= cfg_getint(cfg_terminal,"start_y");
+		terminal->config.win_height 		= cfg_getint(cfg_terminal,"height");
+		terminal->config.win_width 		    = cfg_getint(cfg_terminal,"width");
+		terminal->config.tx_red 			= cfg_getint(cfg_terminal,"text_color_red");
+		terminal->config.tx_green 		    = cfg_getint(cfg_terminal,"text_color_green");
+		terminal->config.tx_blue 			= cfg_getint(cfg_terminal,"text_color_blue");
+		terminal->config.bg_red 			= cfg_getint(cfg_terminal,"background_color_red");
+		terminal->config.bg_blue 			= cfg_getint(cfg_terminal,"background_color_blue");
+		terminal->config.bg_green 		    = cfg_getint(cfg_terminal,"background_color_green");
+		terminal->config.layer 			    = cfg_getint(cfg_terminal,"layer");
+        terminal->config.ani_sleep_sec      = cfg_getint(cfg_terminal,"ani_sleep_sec");
 		
 		/* BOOL */
-		(*terminal)[i].config.font_bold 			= cfg_getbool(cfg_terminal,"font_bold");
-		(*terminal)[i].config.blink_curser 		    = cfg_getbool(cfg_terminal,"blink_curser");
-		(*terminal)[i].config.audio_bell 		    = cfg_getbool(cfg_terminal,"audio_bell");
-		(*terminal)[i].config.antialias 			= cfg_getbool(cfg_terminal,"antialias");
-		(*terminal)[i].config.double_buffer 		= cfg_getbool(cfg_terminal,"double_buffer");
-		(*terminal)[i].config.taskbar_view 		    = cfg_getbool(cfg_terminal,"taskbar_view");
-		(*terminal)[i].config.all_workspace_view    = cfg_getbool(cfg_terminal,"all_workspace_view");
-		(*terminal)[i].config.accept_focus		    = cfg_getbool(cfg_terminal,"accept_focus");
-		(*terminal)[i].config.skip_pager			= cfg_getbool(cfg_terminal,"skip_pager");
-		(*terminal)[i].config.show_hide			    = cfg_getbool(cfg_terminal,"show_hide");
+		terminal->config.font_bold 			= cfg_getbool(cfg_terminal,"font_bold");
+		terminal->config.blink_curser 		= cfg_getbool(cfg_terminal,"blink_curser");
+		terminal->config.audio_bell 		= cfg_getbool(cfg_terminal,"audio_bell");
+		terminal->config.antialias 			= cfg_getbool(cfg_terminal,"antialias");
+		terminal->config.double_buffer 		= cfg_getbool(cfg_terminal,"double_buffer");
+		terminal->config.taskbar_view 		= cfg_getbool(cfg_terminal,"taskbar_view");
+		terminal->config.all_workspace_view = cfg_getbool(cfg_terminal,"all_workspace_view");
+		terminal->config.accept_focus		= cfg_getbool(cfg_terminal,"accept_focus");
+		terminal->config.skip_pager			= cfg_getbool(cfg_terminal,"skip_pager");
+		terminal->config.show_hide			= cfg_getbool(cfg_terminal,"show_hide");
 	} /*}}}*/
+
+    lowterm->terminal_count = table_count;
 
 	cfg_free(cfg);
 
-	return terminal_count;
+	return 0;
 }

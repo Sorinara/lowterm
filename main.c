@@ -2,30 +2,34 @@
 
 int main(int argc,char *argv[])
 {
-    static Terminal *terminal;
-	int terminal_number,
-        i;
+    LowTerm lowterm;
+	int i;
 
-	if((terminal_number = Config_Get(&terminal)) <= 0){
-        fprintf(stderr, "Total Terminal Count : %d\n", terminal_number);
+	if(Config_Get(&lowterm) != 0){
+        fprintf(stderr, "Total Terminal Count : %d\n", lowterm.terminal_count);
         return -1;
     }
 
+    Stack_New(&lowterm.visible_list, lowterm.terminal_count);
+
 	gtk_init(&argc, &argv);
 
-    for(i = 0;i < terminal_number; i++){
-        Terminal_New(i, &(terminal[i]));
-        Terminal_Set(terminal[i]);
-        Terminal_Show_Hide(terminal[i].window, &(terminal[i]));
+    for(i = 0;i < lowterm.terminal_count; i++){
+        /* fprintf(stderr, "Terminal Address : %p\n", &(lowterm.terminal[i])); */
+        lowterm.terminal[i].visible_list_pointer  = &(lowterm.visible_list);
+        Terminal_New(i, &(lowterm.terminal[i]));
+        Terminal_Set(lowterm.terminal[i]);
+        Terminal_Show_Hide(lowterm.terminal[i].window, &(lowterm.terminal[i]));
     }
 
     /* set focus main window */
-    gtk_widget_grab_focus(terminal[0].vte);
-    gtk_window_present(GTK_WINDOW(terminal[0].window));
+    gtk_widget_grab_focus(lowterm.terminal[0].vte);
+    gtk_window_present(GTK_WINDOW(lowterm.terminal[0].window));
 
 	gtk_main();
 
-	free(terminal);
+	free(lowterm.terminal);
+    Stack_Delete(lowterm.visible_list);
 
 	return 0;
 }

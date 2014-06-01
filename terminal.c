@@ -1,6 +1,6 @@
 #include "lowterm.h"
 
-void Terminal_New(int terminal_id, Terminal *terminal)
+void Terminal_New(int terminal_index, Terminal *terminal)
 {/*{{{*/
     char **arg,
          event_name[EVENT_NAME_MAX];
@@ -28,18 +28,20 @@ void Terminal_New(int terminal_id, Terminal *terminal)
                                    NULL);
     g_strfreev(arg);
 
-    terminal->index = terminal_id;
-    terminal->onoff = terminal->config.show_hide;
-    snprintf(event_name, sizeof(event_name), "HotKey_Event%d", terminal_id);
+    terminal->id                    = terminal_index;
+    terminal->visible               = terminal->config.show_hide;
+    snprintf(event_name, sizeof(event_name), "HotKey_Event%d", terminal_index);
 
-    /* TODO: destroy, child-exited*/
+    /* TODO: destroy, child-exited */
     g_signal_connect(terminal->vte, "button-press-event", G_CALLBACK(Terminal_Mouse), terminal);
     g_signal_connect(terminal->vte, "child-exited",       G_CALLBACK(Terminal_Exit),  terminal);
     gtk_container_add(GTK_CONTAINER(terminal->window), terminal->vte);
 
-    if(error_code = Key_Filter(terminal->window, event_name, terminal->config.bd_key_mask, terminal->config.bd_key, Terminal_Show_Hide, &(terminal->key_data), terminal) != 0){
-        key_filter_debug(error_code);
-        return ;
+    if(strcmp(terminal->config.bd_key, "") != 0){
+        if(error_code = Terminal_Key_Event_Register(terminal, event_name, Terminal_Show_Hide) != 0){
+            key_filter_debug(error_code);
+            terminal->config.bd_key="";
+        }
     }
 }/*}}}*/
 
@@ -52,7 +54,7 @@ void Terminal_Set(Terminal terminal)
 
 	/* show hide status */
 	if(terminal.config.show_hide == FALSE){
-		terminal.onoff = OFF;
+		terminal.visible = FALSE;
     }
 
 	/* position */

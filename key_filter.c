@@ -16,7 +16,7 @@
  */
 #include "lowterm.h"
 
-int key_filter_grab_code(char *key_symbol_string, KeyEventData *key_data)
+int key_filter_grab_code(char *key_symbol_string, KeyEvent *key_data)
 {/*{{{*/
     KeySym key_symbol;
 
@@ -28,7 +28,7 @@ int key_filter_grab_code(char *key_symbol_string, KeyEventData *key_data)
         return KEY_SYMBOL_UNKNOWN;
     }
 
-    if((key_data->code = XKeysymToKeycode(GDK_DISPLAY(), key_symbol)) == 0){
+    if((key_data->key_code = XKeysymToKeycode(GDK_DISPLAY(), key_symbol)) == 0){
         return KEY_CODE_UNKNOWN;
     }
 
@@ -55,12 +55,12 @@ void key_filter_grab_mask_delmiter(char *string, int *string_length, char **next
     *next           = string + *string_length + 1;
 }/*}}}*/
 
-int key_filter_grab_mask_parse(char *key_chain, int key_string_length, KeyEventData *key_data)
+int key_filter_grab_mask_parse(char *key_chain, int key_string_length, KeyEvent *key_data)
 {/*{{{*/
     unsigned int mask_old;
     int return_mask;
 
-    mask_old        = key_data->mask;
+    mask_old        = key_data->key_mask;
     return_mask     = 0;
 
     if(*key_chain == '\0'){
@@ -71,80 +71,80 @@ int key_filter_grab_mask_parse(char *key_chain, int key_string_length, KeyEventD
         case 7:
             if(strncmp(key_chain, "AltMask", 7)         == 0 ||\
                strncmp(key_chain, "AltMask", 7)         == 0){
-                key_data->mask  |= Mod1Mask;
-                return_mask      = KEY_MASK_ALT;
+                key_data->key_mask  |= Mod1Mask;
+                return_mask          = KEY_MASK_ALT;
                 /* fprintf(stderr, "Alt Flag\n"); */
             }
             break;
         case 9:
             if(strncmp(key_chain, "ShiftMask", 9)       == 0 ||\
                strncmp(key_chain, "ShiftMask", 9)       == 0){
-                key_data->mask  |= ShiftMask;
-                return_mask      = KEY_MASK_SHIFT;
+                key_data->key_mask  |= ShiftMask;
+                return_mask          = KEY_MASK_SHIFT;
                 /* fprintf(stderr, "Shift Flag\n"); */
             }
 
             if(strncmp(key_chain, "HyperMask", 9)       == 0 ||\
                strncmp(key_chain, "HyperMask", 9)       == 0){
-                key_data->mask  |= Mod3Mask;
-                return_mask      = KEY_MASK_HYPER;
+                key_data->key_mask  |= Mod3Mask;
+                return_mask          = KEY_MASK_HYPER;
                 /* fprintf(stderr, "Hyper Flag\n"); */
             }
 
             if(strncmp(key_chain, "SuperMask", 9)       == 0 ||\
                strncmp(key_chain, "SuperMask", 9)       == 0){
-                key_data->mask  |= Mod4Mask;
-                return_mask      = KEY_MASK_SUPER;
+                key_data->key_mask  |= Mod4Mask;
+                return_mask          = KEY_MASK_SUPER;
                 /* fprintf(stderr, "Super Flag\n"); */
             }
             break;
         case 10:
             if(strncmp(key_chain, "NumLockMask", 10)    == 0){
-                key_data->mask  |= Mod2Mask;
-                return_mask      = KEY_MASK_NUM_LOCK;
+                key_data->key_mask  |= Mod2Mask;
+                return_mask          = KEY_MASK_NUM_LOCK;
                 /* fprintf(stderr, "Num_Lock Flag\n"); */
             }
             break;
         case 11:
             if(strncmp(key_chain, "ControlMask", 11)    == 0 ||\
                strncmp(key_chain, "ControlMask", 11)    == 0){
-                key_data->mask  |= ControlMask;
-                return_mask      = KEY_MASK_CONTROL;
+                key_data->key_mask  |= ControlMask;
+                return_mask          = KEY_MASK_CONTROL;
                 /* fprintf(stderr, "Control Flag\n"); */
             }
             break;
         case 12:
             if(strncmp(key_chain, "CapsLockMask", 12)   == 0){
-                key_data->mask  |= LockMask;
-                return_mask      = KEY_MASK_CAPS_LOCK;
+                key_data->key_mask  |= LockMask;
+                return_mask          = KEY_MASK_CAPS_LOCK;
                 /* fprintf(stderr, "Caps_Lock Flag\n"); */
             }
             break;
         case 14:
             if(strncmp(key_chain, "ScrollLockMask", 14) == 0){
-                key_data->mask  |= Mod5Mask;
-                return_mask      = KEY_MASK_SCROLL_LOCK;
+                key_data->key_mask  |= Mod5Mask;
+                return_mask          = KEY_MASK_SCROLL_LOCK;
                 /* fprintf(stderr, "Scroll_Lock Flag\n"); */
             }
             break;
     }
 
-    if(key_data->mask == mask_old){
+    if(key_data->key_mask == mask_old){
         return 1;
     }
 
     return 0;
 }/*}}}*/
 
-int key_filter_grab_mask(char *key_mask_chain, KeyEventData *key_data)
+int key_filter_grab_mask(char *key_mask_chain, KeyEvent *key_data)
 {/*{{{*/
     char *string_start,
          *string_next;
     int  key_name_length;
 
-    string_start    = key_mask_chain;
-    key_name_length = 0;
-    key_data->mask  = 0;
+    string_start        = key_mask_chain;
+    key_name_length     = 0;
+    key_data->key_mask  = 0;
 
     while(*string_start != '\0'){
         key_filter_grab_mask_delmiter(string_start, &key_name_length, &string_next);
@@ -159,7 +159,7 @@ int key_filter_grab_mask(char *key_mask_chain, KeyEventData *key_data)
     return 0;
 }/*}}}*/
 
-int key_filter_grab(GdkWindow *root_window, char *mask, char *key_symbol_string, KeyEventData *key_data)
+int key_filter_grab(GdkWindow *root_window, char *key_mask, char *key_symbol_string, KeyEvent *key_data)
 {/*{{{*/
     int error_code;
 
@@ -167,14 +167,14 @@ int key_filter_grab(GdkWindow *root_window, char *mask, char *key_symbol_string,
         return KEY_CODE_MASK_ERROR | error_code;
     }
 
-    if((error_code = key_filter_grab_mask(mask, key_data)) != 0){
+    if((error_code = key_filter_grab_mask(key_mask, key_data)) != 0){
         return KEY_CODE_MASK_ERROR | error_code;
     }
 
-    fprintf(stderr, "[%-25s][%-10s] => Mask : 0x%x, Keycode: %d \n", mask, key_symbol_string, key_data->mask, key_data->code);
+    fprintf(stderr, "[%-25s][%-10s] => Mask : 0x%x, Keycode: %d \n", key_mask, key_symbol_string, key_data->key_mask, key_data->key_code);
 
 	gdk_error_trap_push();
-	XGrabKey(GDK_DISPLAY(), key_data->code, key_data->mask, GDK_WINDOW_XID(root_window), True, GrabModeAsync, GrabModeAsync);
+	XGrabKey(GDK_DISPLAY(), key_data->key_code, key_data->key_mask, GDK_WINDOW_XID(root_window), True, GrabModeAsync, GrabModeAsync);
 	gdk_flush();
 
 	if(gdk_error_trap_pop()){
@@ -206,7 +206,7 @@ static GdkFilterReturn key_event_emiter(GdkXEvent *xevent, GdkEvent *event, gpoi
 {/*{{{*/
 	XEvent *xev;
 	XKeyEvent *key;
-    KeyEventData *key_data;
+    KeyEvent *key_data;
 
 	xev = (XEvent *)xevent;
 
@@ -216,20 +216,14 @@ static GdkFilterReturn key_event_emiter(GdkXEvent *xevent, GdkEvent *event, gpoi
 	}
 
 	key      = (XKeyEvent *)xevent;
-    key_data = (KeyEventData *)event_data;
-    /* fprintf(stderr, "Key (Code: %u, Mask:%u) %s\n", key_data->code, key_data->mask, (xev->type - 1) ? "Release" : "Press"); */
+    key_data = (KeyEvent *)event_data;
+    /* fprintf(stderr, "Key (Code: %u, Mask:%u) %s\n", key_data->key_code, key_data->key_mask, (xev->type - 1) ? "Release" : "Press"); */
     /* fprintf(stderr, "Key (Code: %u, Mask:%u)\n", key->keycode, key->state); */
-    /* fprintf(stderr, "-      %p %p %p\n", key_data->widget, key_data->signal_id, key_data->user_data); */
+    /* fprintf(stderr, "-      %p %p %p\n", key_data->widget, key_data->signal_id, key_data->handler_parameter); */
 
-	if(key->keycode == key_data->code && \
-       key->state   == key_data->mask){
-        // 여기서 이런식으로 Level2 페이지(?)를 넣어서 쓴다는 생각?
-        // key_filter_get(page, &data, 2, key_data->code, key_data->mask); 
-        // 어짜피 고정이나까 이중으로 하고 치우지 뭣하러 페이지를 만들 생각을 했을까??
-        // TODO: 그러니까... 여기서 
-        // 1, keycode에 대한 값을 가져옴.
-        // 2, mask에 맞는 terminal 주소를 넘여야 되?!
-        g_signal_emit(key_data->widget, key_data->signal_id, 0, key_data->user_data);
+	if(key->keycode == key_data->key_code && \
+       key->state   == key_data->key_mask){
+        g_signal_emit(key_data->widget, key_data->signal_id, 0, key_data->handler_parameter);
 		return GDK_FILTER_REMOVE;
 	}
 
@@ -237,8 +231,8 @@ static GdkFilterReturn key_event_emiter(GdkXEvent *xevent, GdkEvent *event, gpoi
 }/*}}}*/
 
 /* 새로운 터미널이 생성될때마다, show/hide 키 옵션으로 이게 실행됨. 
- * 핸들러로는 Terminal_Show_Hide(), user_data로는 terminal이 사용된다. */
-int Key_Filter(GtkWidget *widget, const char *event_name, char *mask, char *key_symbol_string, void event_handler(GtkWidget *, gpointer), KeyEventData *key_data, void *user_data)
+ * 핸들러로는 Terminal_Show_Hide(), handler_parameter로는 terminal이 사용된다. */
+int Key_Filter(GtkWidget *widget, const char *event_name, char *mask, char *key_symbol_string, void event_handler(GtkWidget *, gpointer), KeyEvent *key_data, void *handler_parameter)
 {/*{{{*/
     GdkWindow *root_window;
     int        error_code;
@@ -246,24 +240,28 @@ int Key_Filter(GtkWidget *widget, const char *event_name, char *mask, char *key_
 
     root_window = gdk_get_default_root_window();
 
+    /* save data for user */
+    key_data->handler_parameter = handler_parameter;
+
     if((error_code = key_filter_grab(root_window, mask, key_symbol_string, key_data)) != 0){
+        key_filter_debug(error_code);
         return KEY_CODE_FILTER_ERROR | error_code;
     }
-
-    // TODO: page변수도 저장이 가능하게 해야함.
-    key_data->user_data = user_data;
 
     gdk_window_add_filter(root_window, key_event_emiter, key_data);
 
     /* register event and connect     1,             2,                 3, 4,    5,    6,    7,           8, 9,            10 */
     signal_id = g_signal_new(event_name, G_TYPE_OBJECT, G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 1, G_TYPE_POINTER);
-    g_signal_connect(widget, event_name, G_CALLBACK(event_handler), user_data);
-    // key_filter_init(&page, 2, 256, 256);
-    // key_filter_set(&page, key_data, 2, key_data->code, key_data->mask); 
+    g_signal_connect(widget, event_name, G_CALLBACK(event_handler), handler_parameter);
 
-    /* save data for user */
-    key_data->widget    = widget;
-    key_data->signal_id = signal_id;
+    key_data->widget            = widget;
+    key_data->signal_id         = signal_id;
 
     return 0;
+}/*}}}*/
+
+int Terminal_Key_Event_Register(Terminal *terminal, const char *event_name, void event_handler(GtkWidget *, gpointer))
+{/*{{{*/
+    // Key_Filter 함수의 키 유효성을 명확히 하기 위해서.
+    return Key_Filter(terminal->window, event_name, terminal->config.bd_key_mask, terminal->config.bd_key, Terminal_Show_Hide, &(terminal->key), terminal);
 }/*}}}*/

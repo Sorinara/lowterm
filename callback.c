@@ -1,5 +1,27 @@
 #include "lowterm.h"
 
+void memory_pointer_dump(void *data, const int size)
+{/*{{{*/
+    int i;
+    void **data_void;
+
+    data_void = (void **)data;
+
+    fprintf(stderr, "Dump Start Address   : %10p\n{\n     ", data);
+    for(i = 0;i < size;i ++){
+        fprintf(stderr, "%9p ", *(data_void + i));
+        if((i % 16) == 15){
+            fprintf(stderr, "\n");
+        }
+    }
+
+    if(i < 15){
+        fprintf(stderr, "\n");
+    }
+
+    fprintf(stderr, "}\n");
+}/*}}}*/
+
 void terminal_mouse_copy(GtkWidget *widget) 	
 {/*{{{*/
     vte_terminal_copy_clipboard((VteTerminal *)widget);
@@ -160,32 +182,37 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
 
 void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
 {/*{{{*/
-    Terminal *terminal;
+    Terminal *terminal,
+             *terminal_next_focus = NULL;
 
     terminal = (Terminal *)user_data_param;
 
-    fprintf(stderr, "Terminal address : %p\n", user_data_param);
-    if(terminal->onoff == ON){
+    if(terminal->visible == TRUE){
         gtk_window_set_default_size(GTK_WINDOW(terminal->window), terminal->config.win_width, terminal->config.win_height);
         terminal_window_move(terminal->window, terminal->config.win_start_x, terminal->config.win_start_y,
                              "Show", terminal->config.ani_start_place);
 
-        //gdk_flush();
-        /* 이동시 바로 커서가 이동하게 하기 위해서 */
-        gtk_widget_show(terminal->vte);
-        gtk_widget_show(terminal->window);
-
+        gtk_widget_show_all(terminal->window);
         gtk_window_present(GTK_WINDOW(terminal->window));
-        //gtk_widget_grab_focus(terminal->vte);
-        gtk_widget_grab_focus(terminal->window);
-        terminal->onoff = OFF;
+        Stack_Push(terminal->visible_list_pointer, terminal);
+
+        terminal->visible = FALSE;
     }else{
         terminal_window_move(terminal->window, terminal->config.win_start_x, terminal->config.win_start_y,
                              "Hide", terminal->config.ani_end_place);
-        gtk_widget_hide(terminal->window);
-        gtk_widget_hide(terminal->vte);
 
-        terminal->onoff = ON;
+        gtk_widget_hide_all(terminal->window);
+
+        /* now terminal address clear, last terminal window pop */
+        Stack_Clear(terminal->visible_list_pointer, terminal);
+        Stack_Last(terminal->visible_list_pointer, &terminal_next_focus);
+        /* fprintf(stderr, "Pop Get Address : %p\n", terminal_next_focus); */
+
+        if(terminal_next_focus != NULL){
+            gtk_window_present(GTK_WINDOW(terminal_next_focus->window));
+        }
+
+        terminal->visible = TRUE;
     }
 }/*}}}*/
 
