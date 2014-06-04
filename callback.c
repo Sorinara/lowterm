@@ -183,7 +183,7 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
 void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
 {/*{{{*/
     Terminal *terminal,
-             *terminal_next_focus = NULL;
+             *terminal_focus = NULL;
 
     terminal = (Terminal *)user_data_param;
 
@@ -194,7 +194,9 @@ void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
 
         gtk_widget_show_all(terminal->window);
         gtk_window_present(GTK_WINDOW(terminal->window));
-        Stack_Push(terminal->visible_list_pointer, terminal);
+        if(terminal->config.accept_focus == 1){
+            Stack_Push(terminal->visible_list_pointer, terminal);
+        }
 
         terminal->visible = FALSE;
     }else{
@@ -205,19 +207,35 @@ void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
 
         /* now terminal address clear, last terminal window pop */
         Stack_Clear(terminal->visible_list_pointer, terminal);
-        Stack_Last(terminal->visible_list_pointer, &terminal_next_focus);
-        /* fprintf(stderr, "Pop Get Address : %p\n", terminal_next_focus); */
+        Stack_Last(terminal->visible_list_pointer, &terminal_focus);
+        /* fprintf(stderr, "Pop Get Address : %p\n", terminal_focus); */
 
-        if(terminal_next_focus != NULL){
-            gtk_window_present(GTK_WINDOW(terminal_next_focus->window));
+        if(terminal_focus != NULL){
+            gtk_window_present(GTK_WINDOW(terminal_focus->window));
         }
 
         terminal->visible = TRUE;
     }
 }/*}}}*/
 
-void Terminal_Exit(GtkWidget *widget, Terminal *terminal)
+void Terminal_Focus(GtkWidget *nouse, GdkEvent *event, gpointer user_data_param)
 {/*{{{*/
+    Terminal *terminal,
+             *terminal_focus = NULL;
+
+    terminal = (Terminal *)user_data_param;
+
+    Stack_Last(terminal->visible_list_pointer, &terminal_focus);
+
+    gtk_window_present(GTK_WINDOW(terminal_focus->window));
+}/*}}}*/
+
+void Terminal_Exit(GtkWidget *widget, gpointer user_data_param)
+{/*{{{*/
+    Terminal *terminal;
+
+    terminal = (Terminal *)user_data_param;
+
     gtk_widget_destroy(terminal->vte);
     gtk_widget_destroy(terminal->window);
 
