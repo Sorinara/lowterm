@@ -34,7 +34,6 @@ void Terminal_New(int terminal_index, Terminal *terminal)
 
     /* TODO: destroy, child-exited */
     g_signal_connect(terminal->vte, "button-press-event",   G_CALLBACK(Terminal_Mouse), terminal);
-    g_signal_connect(terminal->vte, "focus_in_event",       G_CALLBACK(Terminal_Focus), terminal);
     g_signal_connect(terminal->vte, "child-exited",         G_CALLBACK(Terminal_Exit),  terminal);
 
     gtk_container_add(GTK_CONTAINER(terminal->window), terminal->vte);

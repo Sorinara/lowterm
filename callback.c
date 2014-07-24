@@ -128,12 +128,16 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
     int terminal_x,
         terminal_y,
         tag;
+    GtkBorder *style_border;
     char *url_match,
          *cmd_run;
-    GtkBorder *style_border;
+
+    /* fprintf(stderr, "Event - : %d\n", event->button); */
+    /* fprintf(stderr, "1P: %d,2P: %d, 3P: %d\n", GDK_BUTTON_PRESS, GDK_2BUTTON_PRESS, GDK_3BUTTON_PRESS); */
+    /* fprintf(stderr, "%d \n", GDK_BUTTON_RELEASE); */
 
     switch(event->button){
-        case 1:     // left mouse button press
+        case 1: // left mouse button press 
             /* vte_terminal_get_padding((VteTerminal *)widget, &terminal_x, &terminal_y); */
             /* printf("OX: %d OY: %d\n", terminal_x, terminal_y); */
             gtk_widget_style_get(widget, "inner-border", &style_border, NULL);
@@ -141,13 +145,11 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
             terminal_y = style_border->top  + style_border->bottom;
             /* printf("NX: %d NY: %d\n", terminal_x, terminal_y); */
             url_match = vte_terminal_match_check((VteTerminal *)widget,
-                    (event->x - terminal_y) /((VteTerminal *)widget)->char_width,
-                    (event->y - terminal_y) /((VteTerminal *)widget)->char_height,
-                    &tag);
+                                                 (event->x - terminal_y) /((VteTerminal *)widget)->char_width,
+                                                 (event->y - terminal_y) /((VteTerminal *)widget)->char_height,
+                                                  &tag);
 
-            if(url_match == NULL)
-                terminal_mouse_copy(widget);
-            else{
+            if(url_match != NULL){
                 if((cmd_run = (char *)calloc(strlen(url_match) + strlen(BROWSER_NAME) + 5, sizeof(char))) == NULL){
                     perror("Memroy Alloc Failed");
                     exit(1);
@@ -165,13 +167,15 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
 
                 system(cmd_run);
                 free(cmd_run);
+            }else{
+                /* terminal_mouse_copy(widget); */
             }
 
             free(url_match);
             break;
-        case 2:     // mouse wheel press
+        case 2:
             break;
-        case 3:     // right mouse button press
+        case 3:
             terminal_mouse_paste(widget);
             break;
     }
@@ -194,6 +198,7 @@ void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
 
         gtk_widget_show_all(terminal->window);
         gtk_window_present(GTK_WINDOW(terminal->window));
+
         if(terminal->config.accept_focus == 1){
             Stack_Push(terminal->visible_list_pointer, terminal);
         }
@@ -216,18 +221,6 @@ void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
 
         terminal->visible = TRUE;
     }
-}/*}}}*/
-
-void Terminal_Focus(GtkWidget *nouse, GdkEvent *event, gpointer user_data_param)
-{/*{{{*/
-    Terminal *terminal,
-             *terminal_focus = NULL;
-
-    terminal = (Terminal *)user_data_param;
-
-    Stack_Last(terminal->visible_list_pointer, &terminal_focus);
-
-    gtk_window_present(GTK_WINDOW(terminal_focus->window));
 }/*}}}*/
 
 void Terminal_Exit(GtkWidget *widget, gpointer user_data_param)

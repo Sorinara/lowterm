@@ -131,5 +131,4 @@ void Terminal_Set(Terminal terminal);
 /* callback.c */
 int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event);
 void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param);
-void Terminal_Focus(GtkWidget *nouse, GdkEvent *event, gpointer user_data_param);
 void Terminal_Exit(GtkWidget *widget, gpointer user_data_param);
