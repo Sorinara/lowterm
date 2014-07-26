@@ -168,15 +168,15 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
                 system(cmd_run);
                 free(cmd_run);
             }else{
-                /* terminal_mouse_copy(widget); */
+                terminal_mouse_copy(widget);
             }
 
             free(url_match);
             break;
         case 2:
+            terminal_mouse_paste(widget);
             break;
         case 3:
-            terminal_mouse_paste(widget);
             break;
     }
 
@@ -187,20 +187,22 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
 void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
 {/*{{{*/
     Terminal *terminal,
-             *terminal_focus = NULL;
+             *terminal_stack_last = NULL;
 
     terminal = (Terminal *)user_data_param;
 
+    /* fprintf(stderr, "Terminal Changed : %d (%s)\n", terminal->id, terminal->visible ? "TRUE" : "FALSE"); */
     if(terminal->visible == TRUE){
         gtk_window_set_default_size(GTK_WINDOW(terminal->window), terminal->config.win_width, terminal->config.win_height);
         terminal_window_move(terminal->window, terminal->config.win_start_x, terminal->config.win_start_y,
                              "Show", terminal->config.ani_start_place);
 
+        /* Hidden -> Show */
         gtk_widget_show_all(terminal->window);
         gtk_window_present(GTK_WINDOW(terminal->window));
-
         if(terminal->config.accept_focus == 1){
             Stack_Push(terminal->visible_list_pointer, terminal);
+            /* Stack_Print(*(terminal->visible_list_pointer)); */
         }
 
         terminal->visible = FALSE;
@@ -208,19 +210,43 @@ void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
         terminal_window_move(terminal->window, terminal->config.win_start_x, terminal->config.win_start_y,
                              "Hide", terminal->config.ani_end_place);
 
+        /* Show -> Hidden */
         gtk_widget_hide_all(terminal->window);
 
-        /* now terminal address clear, last terminal window pop */
-        Stack_Clear(terminal->visible_list_pointer, terminal);
-        Stack_Last(terminal->visible_list_pointer, &terminal_focus);
-        /* fprintf(stderr, "Pop Get Address : %p\n", terminal_focus); */
-
-        if(terminal_focus != NULL){
-            gtk_window_present(GTK_WINDOW(terminal_focus->window));
+        if(terminal->config.accept_focus == 1){
+            /* Restore before show window */
+            Stack_Clear(terminal->visible_list_pointer, terminal);
+            Stack_Last(terminal->visible_list_pointer, (void **)&terminal_stack_last);
+            gtk_window_present(GTK_WINDOW(terminal_stack_last->window));
+            /* Stack_Print(*(terminal->visible_list_pointer)); */
         }
 
         terminal->visible = TRUE;
     }
+}/*}}}*/
+
+/* if get focus from another window, do not run this callback */
+gboolean Terminal_Focus_In(GtkWidget *widget, GdkEvent *event, gpointer user_data_param)
+{/*{{{*/
+    Terminal *terminal,
+             *terminal_stack_last = NULL;
+
+    if((terminal = (Terminal *)user_data_param) == NULL){
+        return FALSE;
+    }
+
+    if(terminal->config.accept_focus != 1){
+        return FALSE;
+    }
+
+    /* Show Last Window */
+    Stack_Last(terminal->visible_list_pointer, (void **)&terminal_stack_last);
+
+    if(widget != terminal_stack_last->vte){
+        gtk_window_present(GTK_WINDOW(terminal_stack_last->window));
+    }
+
+    return FALSE;
 }/*}}}*/
 
 void Terminal_Exit(GtkWidget *widget, gpointer user_data_param)

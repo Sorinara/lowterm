@@ -97,6 +97,15 @@ int Stack_Last(Stack *stack, void **data_pointer)
     return 0;
 }/*}}}*/
 
+void Stack_Print(Stack stack)
+{/*{{{*/
+    int i;
+
+    for(i = 0;i < stack.max;i++){
+         fprintf(stderr, "%p : %p\n", (stack.space + (i * sizeof(void *))), *(void **)(stack.space + (i * sizeof(void *))));
+    }
+}/*}}}*/
+
 /*
 int Stack_Pop(Stack *stack, void **data_pointer)
 {
@@ -120,15 +129,6 @@ int Stack_Pop(Stack *stack, void **data_pointer)
     memset(stack->space + (stack->sp * sizeof(void *)), 0x00, sizeof(void *));
 
     return 0;
-}
-
-void Stack_Print(Stack stack)
-{
-    int i;
-
-    for(i = 0;i < stack.max;i++){
-         fprintf(stderr, "%p : %p\n", (stack.space + (i * sizeof(void *))), *(void **)(stack.space + (i * sizeof(void *))));
-    }
 }
 
 int Stack_Test(void)

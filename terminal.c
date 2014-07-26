@@ -33,8 +33,13 @@ void Terminal_New(int terminal_index, Terminal *terminal)
     snprintf(event_name, sizeof(event_name), "HotKey_Event%d", terminal_index);
 
     /* TODO: destroy, child-exited */
-    g_signal_connect(terminal->vte, "button-press-event",   G_CALLBACK(Terminal_Mouse), terminal);
-    g_signal_connect(terminal->vte, "child-exited",         G_CALLBACK(Terminal_Exit),  terminal);
+    g_signal_connect(terminal->vte, "button-press-event",   G_CALLBACK(Terminal_Mouse),     terminal);
+    g_signal_connect(terminal->vte, "child-exited",         G_CALLBACK(Terminal_Exit),      terminal);
+
+    /* if allow focus, register callback function */
+    if(terminal->config.accept_focus == 1){
+        g_signal_connect(terminal->vte, "focus-in-event",   G_CALLBACK(Terminal_Focus_In),  terminal);
+    }
 
     gtk_container_add(GTK_CONTAINER(terminal->window), terminal->vte);
 

@@ -35,3 +35,10 @@ typedef struct _Stack{
     int sp,
         max;
 } Stack;
+
+int Stack_New(Stack *stack, const int stack_size);
+void Stack_Delete(Stack *stack);
+int Stack_Push(Stack *stack, void *data);
+int Stack_Clear(Stack *stack, void *data);
+int Stack_Last(Stack *stack, void **data_pointer);
+void Stack_Print(Stack stack);
