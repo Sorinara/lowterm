@@ -22,14 +22,10 @@ int main(int argc,char *argv[])
         Terminal_Show_Hide(lowterm.terminal[i].window, &(lowterm.terminal[i]));
     }
 
-    /* set focus main window */
-    gtk_widget_grab_focus(lowterm.terminal[0].vte);
-    gtk_window_present(GTK_WINDOW(lowterm.terminal[0].window));
-
 	gtk_main();
 
 	free(lowterm.terminal);
-    Stack_Delete(lowterm.visible_list);
+    Stack_Delete(&(lowterm.visible_list));
 
 	return 0;
 }
