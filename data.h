@@ -41,4 +41,5 @@ void Stack_Delete(Stack *stack);
 int Stack_Push(Stack *stack, void *data);
 int Stack_Clear(Stack *stack, void *data);
 int Stack_Last(Stack *stack, void **data_pointer);
+int Stack_Get(Stack *stack, const int index, void **data_pointer);
 void Stack_Print(Stack stack);

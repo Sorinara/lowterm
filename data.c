@@ -97,6 +97,25 @@ int Stack_Last(Stack *stack, void **data_pointer)
     return 0;
 }/*}}}*/
 
+int Stack_Get(Stack *stack, const int index, void **data_pointer)
+{/*{{{*/
+    if(index < 0){
+        /* assert(0); */
+        return STACK_LAST_UNDERFLOW;
+    }
+
+    if(index > stack->max){
+        /* assert(0); */
+        return STACK_LAST_OVERFLOW;
+    }
+
+    if(data_pointer != NULL){
+        *data_pointer = *(void **)(stack->space + (index * sizeof(void *)));
+    }
+
+    return 0;
+}/*}}}*/
+
 void Stack_Print(Stack stack)
 {/*{{{*/
     int i;

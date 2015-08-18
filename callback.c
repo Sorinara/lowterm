@@ -174,9 +174,9 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
             free(url_match);
             break;
         case 2:
-            terminal_mouse_paste(widget);
             break;
         case 3:
+            terminal_mouse_paste(widget);
             break;
     }
 
@@ -184,7 +184,7 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
     return FALSE;
 }/*}}}*/
 
-void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
+void Terminal_Show_Hide(GtkWidget *widget, gpointer user_data_param)
 {/*{{{*/
     Terminal *terminal,
              *terminal_stack_last = NULL;
@@ -194,12 +194,14 @@ void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
     /* fprintf(stderr, "Terminal Changed : %d (%s)\n", terminal->id, terminal->visible ? "TRUE" : "FALSE"); */
     if(terminal->visible == TRUE){
         gtk_window_set_default_size(GTK_WINDOW(terminal->window), terminal->config.win_width, terminal->config.win_height);
+        gtk_window_set_resizable(GTK_WINDOW(terminal->window), FALSE);
         terminal_window_move(terminal->window, terminal->config.win_start_x, terminal->config.win_start_y,
                              "Show", terminal->config.ani_start_place);
 
         /* Hidden -> Show */
         gtk_widget_show_all(terminal->window);
         gtk_window_present(GTK_WINDOW(terminal->window));
+
         if(terminal->config.accept_focus == 1){
             Stack_Push(terminal->visible_list_pointer, terminal);
             /* Stack_Print(*(terminal->visible_list_pointer)); */
@@ -217,8 +219,10 @@ void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
             /* Restore before show window */
             Stack_Clear(terminal->visible_list_pointer, terminal);
             Stack_Last(terminal->visible_list_pointer, (void **)&terminal_stack_last);
-            gtk_window_present(GTK_WINDOW(terminal_stack_last->window));
+            /* 비지블스택의 마지막(last)를 최상위 윈도우로 두면, Alt+Tab으로 창 이동이 안된다. */
+            /* gtk_window_present(GTK_WINDOW(terminal_stack_last->window)); */
             /* Stack_Print(*(terminal->visible_list_pointer)); */
+            fprintf(stderr, "1: HD focus in : %d, %d\n", gtk_widget_is_focus(widget), gtk_widget_is_focus(terminal_stack_last->vte));
         }
 
         terminal->visible = TRUE;
@@ -229,6 +233,7 @@ void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param)
 gboolean Terminal_Focus_In(GtkWidget *widget, GdkEvent *event, gpointer user_data_param)
 {/*{{{*/
     Terminal *terminal,
+             *terminal_stack_first,
              *terminal_stack_last = NULL;
 
     if((terminal = (Terminal *)user_data_param) == NULL){
@@ -240,11 +245,49 @@ gboolean Terminal_Focus_In(GtkWidget *widget, GdkEvent *event, gpointer user_dat
     }
 
     /* Show Last Window */
+    Stack_Get(terminal->visible_list_pointer, 0, (void **)&terminal_stack_first);
     Stack_Last(terminal->visible_list_pointer, (void **)&terminal_stack_last);
 
-    if(widget != terminal_stack_last->vte){
-        gtk_window_present(GTK_WINDOW(terminal_stack_last->window));
+    if(terminal_stack_first == NULL){
+        return FALSE;
     }
+
+    if(terminal_stack_last == NULL){
+        return FALSE;
+    }
+
+    if(widget != terminal_stack_first->window){
+        return FALSE;
+    }
+
+    /* 포커스를 떠난 터미널과 들어온 터미널이 다르면
+     * 떠난 터미널(stack의 last)과 같게 맞춰 준다 
+     * TODO: 이렇게 하지말고, 터미널 전체의 포커스를 조사해  */
+    if(widget != terminal_stack_last->vte){
+        /* gtk_widget_grab_focus(terminal_stack_first->vte); */
+        /* gtk_window_set_focus(GTK_WINDOW(terminal_stack_first->window),  terminal_stack_first->vte); */
+        /* must be use once gtk_window_present() */
+        gtk_window_present(GTK_WINDOW(terminal_stack_last->window));
+        fprintf(stderr, "2: TP focus in  : %d,%d\n", gtk_widget_is_focus(widget), gtk_widget_is_focus(terminal_stack_last->vte));
+    }else{
+        fprintf(stderr, "2: OP focus in  : %d,%d\n", gtk_widget_is_focus(widget), gtk_widget_is_focus(terminal_stack_last->vte));
+    }
+
+    return FALSE;
+}/*}}}*/
+
+gboolean Terminal_Focus_Out(GtkWidget *widget, GdkEvent *event, gpointer user_data_param)
+{/*{{{*/
+    Terminal *terminal,
+             *terminal_stack_last;
+
+    if((terminal = (Terminal *)user_data_param) == NULL){
+        return FALSE;
+    }
+
+    Stack_Last(terminal->visible_list_pointer, (void **)&terminal_stack_last);
+
+    fprintf(stderr, "3: focus Out : %d %d\n\n", gtk_widget_is_focus(widget), gtk_widget_is_focus(terminal_stack_last->vte));
 
     return FALSE;
 }/*}}}*/

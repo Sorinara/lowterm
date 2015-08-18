@@ -39,13 +39,13 @@ void Terminal_New(int terminal_index, Terminal *terminal)
     /* if allow focus, register callback function */
     if(terminal->config.accept_focus == 1){
         g_signal_connect(terminal->vte, "focus-in-event",   G_CALLBACK(Terminal_Focus_In),  terminal);
+        g_signal_connect(terminal->vte, "focus-out-event",  G_CALLBACK(Terminal_Focus_Out), terminal);
     }
 
     gtk_container_add(GTK_CONTAINER(terminal->window), terminal->vte);
 
     if(strcmp(terminal->config.bd_key, "") != 0){
         if(error_code = Terminal_Key_Event_Register(terminal, event_name, Terminal_Show_Hide) != 0){
-            key_filter_debug(error_code);
             terminal->config.bd_key="";
         }
     }

@@ -87,7 +87,7 @@ typedef struct _Config
     /* for new hot key module */
 } Config;/*}}}*/
 
-typedef struct _KeyEvent{
+typedef struct _KeyEvent{/*{{{*/
     GtkWidget   *widget;
     guint        signal_id;
 
@@ -95,10 +95,9 @@ typedef struct _KeyEvent{
     unsigned int key_mask;
 
     void *handler_parameter;
-} KeyEvent;
+} KeyEvent;/*}}}*/
 
-typedef struct _Terminal
-{
+typedef struct _Terminal {/*{{{*/
     GtkWidget *window,
               *vte;
     int id,
@@ -108,28 +107,28 @@ typedef struct _Terminal
     Stack *visible_list_pointer;
 
     Config config;
-} Terminal;
+} Terminal;/*}}}*/
 
-typedef struct _LowTerm{
+typedef struct _LowTerm{/*{{{*/
     Terminal *terminal;
     int terminal_count;
 
     Stack visible_list;
-} LowTerm;
+} LowTerm;/*}}}*/
 
 /*  config.c */
 int  Config_Get(LowTerm *lowterm);
 
 /* key_event.c */
-void Key_Filter_Debug(int error_code);
-int  Key_Filter(GtkWidget *widget, const char *event_name, char *mask, char *key_symbol_string, void event_handler(GtkWidget *, gpointer), KeyEvent *key_data, void *user_data);
+int  Terminal_Key_Event_Register(Terminal *terminal, const char *event_name, void event_handler(GtkWidget *, gpointer));
 
 /* terminal.c */
 void Terminal_New(int terminal_index, Terminal *terminal);
 void Terminal_Set(Terminal terminal);
 
 /* callback.c */
-int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event);
-void Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param);
+int      Terminal_Mouse(GtkWidget *widget, GdkEventButton *event);
+void     Terminal_Show_Hide(GtkWidget *nouse, gpointer user_data_param);
 gboolean Terminal_Focus_In(GtkWidget *widget, GdkEvent *event, gpointer user_data_param);
-void Terminal_Exit(GtkWidget *widget, gpointer user_data_param);
+gboolean Terminal_Focus_Out(GtkWidget *widget, GdkEvent *event, gpointer user_data_param);
+void     Terminal_Exit(GtkWidget *widget, gpointer user_data_param);

@@ -232,7 +232,7 @@ static GdkFilterReturn key_event_emiter(GdkXEvent *xevent, GdkEvent *event, gpoi
 
 /* 새로운 터미널이 생성될때마다, show/hide 키 옵션으로 이게 실행됨. 
  * 핸들러로는 Terminal_Show_Hide(), handler_parameter로는 terminal이 사용된다. */
-int Key_Filter(GtkWidget *widget, const char *event_name, char *mask, char *key_symbol_string, void event_handler(GtkWidget *, gpointer), KeyEvent *key_data, void *handler_parameter)
+int key_filter(GtkWidget *widget, const char *event_name, char *mask, char *key_symbol_string, void event_handler(GtkWidget *, gpointer), KeyEvent *key_data, void *handler_parameter)
 {/*{{{*/
     GdkWindow *root_window;
     int        error_code;
@@ -262,6 +262,6 @@ int Key_Filter(GtkWidget *widget, const char *event_name, char *mask, char *key_
 
 int Terminal_Key_Event_Register(Terminal *terminal, const char *event_name, void event_handler(GtkWidget *, gpointer))
 {/*{{{*/
-    // Key_Filter 함수의 키 유효성을 명확히 하기 위해서.
-    return Key_Filter(terminal->window, event_name, terminal->config.bd_key_mask, terminal->config.bd_key, Terminal_Show_Hide, &(terminal->key), terminal);
+    // key_filter 함수의 키 유효성을 명확히 하기 위해서.
+    return key_filter(terminal->window, event_name, terminal->config.bd_key_mask, terminal->config.bd_key, Terminal_Show_Hide, &(terminal->key), terminal);
 }/*}}}*/
