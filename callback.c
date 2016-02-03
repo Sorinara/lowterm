@@ -195,27 +195,27 @@ void Terminal_Show_Hide(GtkWidget *widget, gpointer user_data_param)
     if(terminal->visible == TRUE){
         gtk_window_set_default_size(GTK_WINDOW(terminal->window), terminal->config.win_width, terminal->config.win_height);
         gtk_window_set_resizable(GTK_WINDOW(terminal->window), FALSE);
-        terminal_window_move(terminal->window, terminal->config.win_start_x, terminal->config.win_start_y,
-                             "Show", terminal->config.ani_start_place);
+        terminal_window_move(terminal->window, terminal->config.win_pos_x, terminal->config.win_pos_y,
+                             "Show", terminal->config.win_move_start);
 
         /* Hidden -> Show */
         gtk_widget_show_all(terminal->window);
         gtk_window_present(GTK_WINDOW(terminal->window));
 
-        if(terminal->config.accept_focus == 1){
+        if(terminal->config.win_focus== 1){
             Stack_Push(terminal->visible_list_pointer, terminal);
             /* Stack_Print(*(terminal->visible_list_pointer)); */
         }
 
         terminal->visible = FALSE;
     }else{
-        terminal_window_move(terminal->window, terminal->config.win_start_x, terminal->config.win_start_y,
-                             "Hide", terminal->config.ani_end_place);
+        terminal_window_move(terminal->window, terminal->config.win_pos_x, terminal->config.win_pos_y,
+                             "Hide", terminal->config.win_move_end);
 
         /* Show -> Hidden */
         gtk_widget_hide_all(terminal->window);
 
-        if(terminal->config.accept_focus == 1){
+        if(terminal->config.win_focus == 1){
             /* Restore before show window */
             Stack_Clear(terminal->visible_list_pointer, terminal);
             Stack_Last(terminal->visible_list_pointer, (void **)&terminal_stack_last);
@@ -240,7 +240,7 @@ gboolean Terminal_Focus_In(GtkWidget *widget, GdkEvent *event, gpointer user_dat
         return FALSE;
     }
 
-    if(terminal->config.accept_focus != 1){
+    if(terminal->config.win_focus != 1){
         return FALSE;
     }
 
@@ -303,5 +303,5 @@ void Terminal_Exit(GtkWidget *widget, gpointer user_data_param)
 
     /* key bind, malloc free 하는거 나중에 추가하셈 */
     //g_free(terminal);
-    //gtk_main_quit();
+    gtk_main_quit();
 }/*}}}*/

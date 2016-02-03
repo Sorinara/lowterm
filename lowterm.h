@@ -6,6 +6,7 @@
 #include <vte-0.0/vte/vte.h>
 #include <confuse.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include "data.h"
 
@@ -43,46 +44,41 @@
 #define  CONFIG_FILE_PATH_MAX   100
 #define  CONFIG_TITLE           "Terminal"
 
+#define  CONFIG_DEFAULT_NAME    "Terminal"
 typedef struct _Config
 {/*{{{*/
 	char *name,
-	     *scr_opt,
-	     *bd_key,
-         *bd_key_mask;
-
-	int show_hide,
-	    win_start_x,
-	    win_start_y,
-	    win_height,
-	    win_width;
-
-	char *font,
-	     *locale;
-	int antialias,
-        font_bold;
-
-	int tx_red,
-	    tx_green,
-	    tx_blue,
-	    bg_red,
-	    bg_green,
-	    bg_blue;
-
-	char *bg_image; /* no use */
-	double bg_transparency;
-
-	BOOL layer,
-	     accept_focus,
-	     blink_curser,
-	     double_buffer,
-	     audio_bell,
-	     skip_pager,
-	     taskbar_view,
-	     all_workspace_view;
-
-    int ani_sleep_sec;
-    char *ani_start_place,
-         *ani_end_place;
+	     *execute,
+         *bind_key,
+         *bind_key_mask;
+	int   win_visible,
+          win_pos_x,
+	      win_pos_y,
+	      win_height,
+	      win_width,
+          win_layer;
+	BOOL  win_focus,
+          win_show_pager,
+	      win_show_taskbar,
+	      win_show_all_workspace;
+    int   win_move_sleep_sec;
+    char *win_move_start,
+         *win_move_end;
+	char *term_font;
+    int   term_font_bold,
+          term_antialias;
+	char *term_locale;
+	BOOL  term_blink_curser,
+	      term_double_buffer,
+	      term_audio_bell;
+	char *term_image; /* no use */
+	double term_transparency;
+	int term_backcolor_red,
+	    term_backcolor_green,
+	    term_backcolor_blue,
+        term_textcolor_red,
+	    term_textcolor_green,
+	    term_textcolor_blue;
 
     /* for new hot key module */
 } Config;/*}}}*/
@@ -117,7 +113,7 @@ typedef struct _LowTerm{/*{{{*/
 } LowTerm;/*}}}*/
 
 /*  config.c */
-int  Config_Get(LowTerm *lowterm);
+int Config_Get(int argc, char *argv[], LowTerm *lowterm);
 
 /* key_event.c */
 int  Terminal_Key_Event_Register(Terminal *terminal, const char *event_name, void event_handler(GtkWidget *, gpointer));
