@@ -49,21 +49,21 @@ typedef struct _Config
 {/*{{{*/
 	char *name,
 	     *execute,
-         *bind_key,
-         *bind_key_mask;
+         *win_bind_key,
+         *win_bind_key_mask;
 	int   win_visible,
           win_pos_x,
 	      win_pos_y,
-	      win_height,
-	      win_width,
+	      win_size_height,
+	      win_size_width,
           win_layer;
 	BOOL  win_focus,
           win_show_pager,
 	      win_show_taskbar,
 	      win_show_all_workspace;
-    int   win_move_sleep_sec;
-    char *win_move_start,
-         *win_move_end;
+    int   win_animation_delay;
+    char *win_animation_move_start,
+         *win_animation_move_end;
 	char *term_font;
     int   term_font_bold,
           term_antialias;
@@ -72,7 +72,7 @@ typedef struct _Config
 	      term_double_buffer,
 	      term_audio_bell;
 	char *term_image; /* no use */
-	double term_transparency;
+	double term_transparent;
 	int term_backcolor_red,
 	    term_backcolor_green,
 	    term_backcolor_blue,

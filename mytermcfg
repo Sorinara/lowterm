@@ -1,0 +1,83 @@
+Terminal 1
+{
+    name="Programming"
+    execute="tmux attach-session -t main"
+	win_bind_key={"", ""}
+    win_visible=TRUE
+	win_pos={0, 49}
+	win_size={1031, 1603}
+    win_layer=0
+	win_focus=TRUE
+    win_show_pager=FALSE
+    win_show_taskbar=TRUE
+    win_show_all_workspace=TRUE
+    win_animation_delay=0
+    win_animation_move={"up", "left"}
+    term_font="lowterm 8"
+	term_font_bold=FALSE
+    term_antialias=FALSE
+    term_locale="UTF-8"
+    term_blink_curser=TRUE
+    term_double_buffer=TRUE
+    term_audio_bell=FALSE
+    term_image="/home/lowid/etc/desktop/wallpaper/now/Aria_boat.jpg"
+    term_transparent=1.0
+    term_backcolor={0xffff, 0xffff, 0xffff}
+    term_textcolor={0x0000, 0x0000, 0x0000}
+}
+
+Terminal 2
+{
+	name="NcMPCPP"
+    execute="ncmpcpp"
+    win_bind_key={"ShiftMask", "space"}
+	win_visible=FALSE
+	win_pos={1598, 200}
+	win_size={902, 322}
+	win_layer=1
+	win_focus=TRUE
+    win_show_pager=TRUE
+	win_show_taskbar=TRUE
+	win_show_all_workspace=TRUE
+    win_animation_delay=0
+    win_animation_move={"left", "right"}
+	term_font="아리따SB 11"
+	term_font_bold=FALSE
+	term_antialias=FALSE
+	term_locale="UTF-8"
+	term_blink_curser=FALSE
+	term_double_buffer=TRUE
+	term_audio_bell=FALSE
+	term_image=""
+	term_transparent=1.0
+    term_backcolor={0xffff, 0xffff, 0xffff}
+    term_textcolor={0x0000, 0x0000, 0x0000}
+}
+
+Terminal 3
+{
+    name="Lyrics"
+    execute="/home/lowid/bin/lyrics"
+    win_bind_key={"", ""}
+    win_visible=TRUE
+    win_pos={1395, 0 }
+    win_size={50, 525}
+    win_layer=0
+    win_focus=FALSE
+    win_show_pager=TRUE
+    win_show_taskbar=FALSE
+    win_show_all_workspace=TRUE
+    win_animation_delay=0
+    win_animation_move={"right", "left"}
+    term_font="아리따SB 11"
+    term_font_bold=TRUE
+    term_antialias=FALSE
+    term_locale="UTF-8"
+    term_blink_curser=FALSE
+    term_double_buffer=TRUE
+    term_audio_bell=FALSE
+    term_image=""
+    term_transparent=1.0
+    term_backcolor={0xffff, 0xffff, 0xffff}
+    term_textcolor={0x0000, 0x0000, 0x0000}
+}

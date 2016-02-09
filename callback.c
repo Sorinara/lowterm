@@ -193,10 +193,10 @@ void Terminal_Show_Hide(GtkWidget *widget, gpointer user_data_param)
 
     /* fprintf(stderr, "Terminal Changed : %d (%s)\n", terminal->id, terminal->visible ? "TRUE" : "FALSE"); */
     if(terminal->visible == TRUE){
-        gtk_window_set_default_size(GTK_WINDOW(terminal->window), terminal->config.win_width, terminal->config.win_height);
+        gtk_window_set_default_size(GTK_WINDOW(terminal->window), terminal->config.win_size_width, terminal->config.win_size_height);
         gtk_window_set_resizable(GTK_WINDOW(terminal->window), FALSE);
         terminal_window_move(terminal->window, terminal->config.win_pos_x, terminal->config.win_pos_y,
-                             "Show", terminal->config.win_move_start);
+                             "Show", terminal->config.win_animation_move_start);
 
         /* Hidden -> Show */
         gtk_widget_show_all(terminal->window);
@@ -210,7 +210,7 @@ void Terminal_Show_Hide(GtkWidget *widget, gpointer user_data_param)
         terminal->visible = FALSE;
     }else{
         terminal_window_move(terminal->window, terminal->config.win_pos_x, terminal->config.win_pos_y,
-                             "Hide", terminal->config.win_move_end);
+                             "Hide", terminal->config.win_animation_move_end);
 
         /* Show -> Hidden */
         gtk_widget_hide_all(terminal->window);

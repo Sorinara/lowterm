@@ -263,5 +263,5 @@ int key_filter(GtkWidget *widget, const char *event_name, char *mask, char *key_
 int Terminal_Key_Event_Register(Terminal *terminal, const char *event_name, void event_handler(GtkWidget *, gpointer))
 {/*{{{*/
     // key_filter 함수의 키 유효성을 명확히 하기 위해서.
-    return key_filter(terminal->window, event_name, terminal->config.bind_key_mask, terminal->config.bind_key, Terminal_Show_Hide, &(terminal->key), terminal);
+    return key_filter(terminal->window, event_name, terminal->config.win_bind_key_mask, terminal->config.win_bind_key, Terminal_Show_Hide, &(terminal->key), terminal);
 }/*}}}*/

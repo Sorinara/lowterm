@@ -44,9 +44,9 @@ void Terminal_New(int terminal_index, Terminal *terminal)
 
     gtk_container_add(GTK_CONTAINER(terminal->window), terminal->vte);
 
-    if(strcmp(terminal->config.bind_key, "") != 0){
+    if(strcmp(terminal->config.win_bind_key, "") != 0){
         if(error_code = Terminal_Key_Event_Register(terminal, event_name, Terminal_Show_Hide) != 0){
-            terminal->config.bind_key="";
+            terminal->config.win_bind_key="";
         }
     }
 }/*}}}*/
@@ -67,8 +67,8 @@ void Terminal_Set(Terminal terminal)
 	gtk_window_move(GTK_WINDOW(terminal.window), terminal.config.win_pos_x, terminal.config.win_pos_y);
 
     /* privent brake terminal */
-	gtk_widget_set_size_request(terminal.window, terminal.config.win_width, terminal.config.win_height);
-	gtk_widget_set_size_request(terminal.vte, terminal.config.win_width, terminal.config.win_height);
+	gtk_widget_set_size_request(terminal.window, terminal.config.win_size_width, terminal.config.win_size_height);
+	gtk_widget_set_size_request(terminal.vte, terminal.config.win_size_width, terminal.config.win_size_height);
 
     /* window proterty */
     gtk_window_set_title(GTK_WINDOW(terminal.window), terminal.config.name);
@@ -113,7 +113,7 @@ void Terminal_Set(Terminal terminal)
 	vte_terminal_set_background_transparent(VTE_TERMINAL(terminal.vte), TRUE);
 
 	/* saturation (contrast) */
-	vte_terminal_set_background_saturation(VTE_TERMINAL(terminal.vte), terminal.config.term_transparency);
+	vte_terminal_set_background_saturation(VTE_TERMINAL(terminal.vte), terminal.config.term_transparent);
     
 	/* default window manager */
 	if(terminal.config.win_layer == 1){
