@@ -103,6 +103,7 @@ typedef struct _Terminal {/*{{{*/
     Stack *visible_list_pointer;
 
     Config config;
+    GError *exit_code;
 } Terminal;/*}}}*/
 
 typedef struct _LowTerm{/*{{{*/

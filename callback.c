@@ -84,7 +84,9 @@ int  terminal_window_move(GtkWidget *window, int pos_x, int pos_y, char *status,
         /* } */
 
         /* 원위치로 이동 */
-        gtk_window_move(GTK_WINDOW(window), pos_x, pos_y);
+        if(pos_x >= 0 && pos_y >= 0){
+            gtk_window_move(GTK_WINDOW(window), pos_x, pos_y);
+        }    
     }else if(strcmp(status, "Hide") == 0){
         /* from down to up */
         /* if(strcmp(direction, "up") == 0){ */
@@ -301,6 +303,7 @@ void Terminal_Exit(GtkWidget *widget, gpointer user_data_param)
     gtk_widget_destroy(terminal->vte);
     gtk_widget_destroy(terminal->window);
 
+    printf("[Terminal %d] Exit Code : %p\n", terminal->id, terminal->exit_code);
     /* key bind, malloc free 하는거 나중에 추가하셈 */
     //g_free(terminal);
     gtk_main_quit();

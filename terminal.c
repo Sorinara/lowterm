@@ -6,7 +6,8 @@ void Terminal_New(int terminal_index, Terminal *terminal)
          event_name[EVENT_NAME_MAX];
     int error_code;
 
-    terminal->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    terminal->window    = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    terminal->exit_code = NULL;
 
     if(terminal->config.execute == NULL){
         terminal->config.execute = getenv("SHELL");
@@ -25,7 +26,7 @@ void Terminal_New(int terminal_index, Terminal *terminal)
                                    NULL,
                                    NULL,
                                    NULL,
-                                   NULL);
+                                   &(terminal->exit_code));
     g_strfreev(arg);
 
     terminal->id                    = terminal_index;
@@ -64,7 +65,9 @@ void Terminal_Set(Terminal terminal)
     }
 
 	/* position */
-	gtk_window_move(GTK_WINDOW(terminal.window), terminal.config.win_pos_x, terminal.config.win_pos_y);
+    if(terminal.config.win_pos_x >= 0 && terminal.config.win_pos_y >= 0){
+	    gtk_window_move(GTK_WINDOW(terminal.window), terminal.config.win_pos_x, terminal.config.win_pos_y);
+    }
 
     /* privent brake terminal */
 	gtk_widget_set_size_request(terminal.window, terminal.config.win_size_width, terminal.config.win_size_height);

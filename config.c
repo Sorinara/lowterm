@@ -8,7 +8,7 @@ typedef struct _Param
     int   length;
 } Param;/*}}}*/
 
-void Config_Print_Param(Config config)
+void Config_Print_Param_Debug(Config config)
 {/*{{{*/
     if(config.name != NULL){
         fprintf(stderr, "--name                   : %s\n", config.name);
@@ -195,15 +195,15 @@ int Config_Parameter_Get(int argc, char *argv[], char **filepath, Config *config
     options.win_bind_key                = "";
     options.win_bind_key_mask           = "";
     options.win_visible                 = TRUE;
-	options.win_pos_x                   = 0;
-	options.win_pos_y                   = 0;
+	options.win_pos_x                   = -1;
+	options.win_pos_y                   = -1;
 	options.win_size_height             = 500;
 	options.win_size_width              = 500;
 	options.win_layer                   = 0;
 	options.win_focus                   = TRUE;
     options.win_show_pager              = TRUE;
 	options.win_show_taskbar            = TRUE;
-	options.win_show_all_workspace      = FALSE;
+	options.win_show_all_workspace      = TRUE;
     options.win_animation_delay         = 1000;
     options.win_animation_move_start    = "left";
     options.win_animation_move_end      = "left";
@@ -281,16 +281,16 @@ int Config_Parameter_Get(int argc, char *argv[], char **filepath, Config *config
                 options.win_layer = atoi(optarg);
                 break;
             case 'F':
-                options.win_focus = TRUE;
+                options.win_focus = FALSE;
                 break;
             case 'P':
-                options.win_show_pager = TRUE;
+                options.win_show_pager = FALSE;
                 break;
             case 'T':
-                options.win_show_taskbar = TRUE;
+                options.win_show_taskbar = FALSE;
                 break;
             case 'w':
-                options.win_show_all_workspace = TRUE;
+                options.win_show_all_workspace = FALSE;
                 break;
             case 'd':
                 options.win_animation_delay = atoi(optarg);
@@ -305,22 +305,22 @@ int Config_Parameter_Get(int argc, char *argv[], char **filepath, Config *config
                 options.term_font = strdup(optarg);
                 break;
             case 'b':
-                options.term_font_bold = TRUE;
+                options.term_font_bold = FALSE;
                 break;
             case 'a':
-                options.term_antialias = TRUE;
+                options.term_antialias = FALSE;
                 break;
             case 'l':
                 options.term_locale = strdup(optarg);
                 break;
             case 'B':
-                options.term_blink_curser = TRUE;
+                options.term_blink_curser = FALSE;
                 break;
             case 'D':
-                options.term_double_buffer = TRUE;
+                options.term_double_buffer = FALSE;
                 break;
             case 'A':
-                options.term_audio_bell = TRUE;
+                options.term_audio_bell = FALSE;
                 break;
             case 'i':
                 options.term_image = strdup(optarg);
@@ -463,7 +463,7 @@ void Config_Free(LowTerm lowterm)
     int i;
 
     for(i = 0;i < lowterm.terminal_count;i++){
-        Config_Print_Param((lowterm.terminal)[i].config);
+        /* Config_Print_Param_Debug((lowterm.terminal)[i].config); */
 
         free(lowterm.terminal[i].config.name);
         free(lowterm.terminal[i].config.execute);
