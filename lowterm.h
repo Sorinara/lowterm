@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <gtk/gtk.h>
 #include <gdk/gdkx.h>
-#include <vte-0.0/vte/vte.h>
+#include <gtk/gtk.h>
+#include <vte/vte.h>
 #include <confuse.h>
 #include <assert.h>
 #include <unistd.h>
@@ -54,8 +54,6 @@ typedef struct _Config
 	int   win_visible,
           win_pos_x,
 	      win_pos_y,
-	      win_size_height,
-	      win_size_width,
           win_layer;
 	BOOL  win_focus,
           win_show_pager,
@@ -64,22 +62,26 @@ typedef struct _Config
     int   win_animation_delay;
     char *win_animation_move_start,
          *win_animation_move_end;
+	int   term_size_height,
+	      term_size_width;
 	char *term_font;
-    int   term_font_bold,
-          term_antialias;
+    int   term_font_bold;
 	char *term_locale;
-	BOOL  term_blink_curser,
-	      term_double_buffer,
+    int   term_cursor_shape;
+	BOOL  term_cursor_blink,
 	      term_audio_bell;
-	char *term_image; /* no use */
-	double term_transparent;
-	int term_backcolor_red,
-	    term_backcolor_green,
-	    term_backcolor_blue,
-        term_textcolor_red,
-	    term_textcolor_green,
-	    term_textcolor_blue;
-
+	double term_back_color_red,
+	       term_back_color_green,
+	       term_back_color_blue,
+           term_back_color_alpha,
+           term_text_color_red,
+	       term_text_color_green,
+	       term_text_color_blue,
+           term_text_color_alpha,
+           term_cursor_color_red,
+           term_cursor_color_green,
+           term_cursor_color_blue,
+           term_cursor_color_alpha;
     /* for new hot key module */
 } Config;/*}}}*/
 

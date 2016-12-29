@@ -1,36 +1,42 @@
 #include "lowterm.h"
 
+#define PALETTE_SIZE 16
+
 void Terminal_New(int terminal_index, Terminal *terminal)
 {/*{{{*/
+    GdkScreen *screen;
+    GdkVisual *visual;
     char **arg,
          event_name[EVENT_NAME_MAX];
-    int error_code;
-
-    terminal->window    = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    terminal->exit_code = NULL;
+    GPid pid;
 
     if(terminal->config.execute == NULL){
         terminal->config.execute = getenv("SHELL");
     }
 
-    g_shell_parse_argv(terminal->config.execute, NULL, &arg, NULL);
-    terminal->vte = vte_terminal_new();
+    terminal->window    = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    terminal->vte       = vte_terminal_new();
+    terminal->exit_code = NULL;
 
-    /* argc argv 초기화 불량! */
-    vte_terminal_fork_command_full(VTE_TERMINAL(terminal->vte),
-                                   0,               /* default tty */
-                                   getenv("HOME"),  /* start directory */
-                                   arg,             /* argv */
-                                   NULL,            /* enviroment value */
-                                   G_SPAWN_SEARCH_PATH,
-                                   NULL,
-                                   NULL,
-                                   NULL,
-                                   &(terminal->exit_code));
+    screen = gtk_widget_get_screen(terminal->window);
+    visual = gdk_screen_get_rgba_visual(screen);
+
+    if (visual == NULL) {
+        visual = gdk_screen_get_system_visual(screen);
+    }
+
+    if (visual != NULL && gdk_screen_is_composited(screen)) {
+        gtk_widget_set_visual(terminal->window, visual);
+        gtk_widget_set_visual(terminal->vte, visual);
+    }
+
+    g_shell_parse_argv(terminal->config.execute, NULL, &arg, NULL);
+    vte_terminal_spawn_sync(VTE_TERMINAL(terminal->vte), VTE_PTY_DEFAULT, getenv("HOME"), arg, NULL, G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, &pid, NULL, NULL);
+    vte_terminal_watch_child(VTE_TERMINAL(terminal->vte), pid);
     g_strfreev(arg);
 
-    terminal->id                    = terminal_index;
-    terminal->visible               = terminal->config.win_visible;
+    terminal->id        = terminal_index;
+    terminal->visible   = terminal->config.win_visible;
     snprintf(event_name, sizeof(event_name), "HotKey_Event%d", terminal_index);
 
     /* TODO: destroy, child-exited */
@@ -46,7 +52,7 @@ void Terminal_New(int terminal_index, Terminal *terminal)
     gtk_container_add(GTK_CONTAINER(terminal->window), terminal->vte);
 
     if(strcmp(terminal->config.win_bind_key, "") != 0){
-        if(error_code = Terminal_Key_Event_Register(terminal, event_name, Terminal_Show_Hide) != 0){
+        if(Terminal_Key_Event_Register(terminal, event_name, Terminal_Show_Hide) != 0){
             terminal->config.win_bind_key="";
         }
     }
@@ -54,10 +60,10 @@ void Terminal_New(int terminal_index, Terminal *terminal)
 
 void Terminal_Set(Terminal terminal)
 {/*{{{*/
-	VteTerminalAntiAlias antialias = VTE_ANTI_ALIAS_USE_DEFAULT;
-   	PangoFontDescription *p_font_fd;
-	GdkColor terminal_fg_color,
-             terminal_bg_color;
+	GdkRGBA background_color,
+            text_color,
+            cursor_color,
+            cursor_color_text;
 
 	/* show hide status */
 	if(terminal.config.win_visible == FALSE){
@@ -69,55 +75,46 @@ void Terminal_Set(Terminal terminal)
 	    gtk_window_move(GTK_WINDOW(terminal.window), terminal.config.win_pos_x, terminal.config.win_pos_y);
     }
 
-    /* privent brake terminal */
-	gtk_widget_set_size_request(terminal.window, terminal.config.win_size_width, terminal.config.win_size_height);
-	gtk_widget_set_size_request(terminal.vte, terminal.config.win_size_width, terminal.config.win_size_height);
+    /* size */
+    vte_terminal_set_size(VTE_TERMINAL(terminal.vte), terminal.config.term_size_width, terminal.config.term_size_height);
 
     /* window proterty */
     gtk_window_set_title(GTK_WINDOW(terminal.window), terminal.config.name);
     gtk_window_set_role(GTK_WINDOW(terminal.window), terminal.config.name);
     gtk_window_set_decorated(GTK_WINDOW(terminal.window), FALSE);
+    gtk_window_set_resizable(GTK_WINDOW(terminal.window), FALSE);
 
-	/* set font/antialias */
+	/* set font */
 	if(strcmp(terminal.config.term_font, "") != 0){
-		p_font_fd = pango_font_description_from_string(terminal.config.term_font);
-
-		if(terminal.config.term_antialias == TRUE){
-			vte_terminal_set_font(VTE_TERMINAL(terminal.vte), p_font_fd);
-            /* vte_terminal_set_font_full(VTE_TERMINAL(terminal.vte), p_font_fd, antialias); */
-        }else{
-			vte_terminal_set_font(VTE_TERMINAL(terminal.vte), p_font_fd);
-        }
+		vte_terminal_set_font(VTE_TERMINAL(terminal.vte), pango_font_description_from_string(terminal.config.term_font));
 	}
 
 	/* locale */
-	if(strcmp(terminal.config.term_locale,"")!=0){
-		vte_terminal_set_encoding(VTE_TERMINAL(terminal.vte), terminal.config.term_locale);
+	if(strcmp(terminal.config.term_locale,"") != 0){
+		vte_terminal_set_encoding(VTE_TERMINAL(terminal.vte), terminal.config.term_locale, NULL);
     }
 
 	/* font bold (default TRUE) */
 	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal.vte), terminal.config.term_font_bold);
 
-	/* terminal color backgound,foreground */
-	terminal_fg_color.red 	= terminal.config.term_textcolor_red;
-	terminal_fg_color.green = terminal.config.term_textcolor_green;
-	terminal_fg_color.blue 	= terminal.config.term_textcolor_blue;
-	terminal_bg_color.red 	= terminal.config.term_backcolor_red;
-	terminal_bg_color.green = terminal.config.term_backcolor_green;
-	terminal_bg_color.blue 	= terminal.config.term_backcolor_blue;
-	vte_terminal_set_colors(VTE_TERMINAL(terminal.vte), &terminal_fg_color, &terminal_bg_color, NULL, 0);
+	/* terminal backgound color */
+    vte_terminal_set_default_colors(VTE_TERMINAL(terminal.vte));
 
-	/*background image */
-	if(strcmp(terminal.config.term_image, "") != 0){
-	    vte_terminal_set_background_image_file(VTE_TERMINAL(terminal.vte), terminal.config.term_image);
-    }
+	background_color.red    = terminal.config.term_back_color_red;
+	background_color.green  = terminal.config.term_back_color_green;
+	background_color.blue   = terminal.config.term_back_color_blue;
+    background_color.alpha  = terminal.config.term_back_color_alpha;
+	vte_terminal_set_color_background(VTE_TERMINAL(terminal.vte), &background_color);
 
-	/* transparent */
-	vte_terminal_set_background_transparent(VTE_TERMINAL(terminal.vte), TRUE);
+	/* terminal text color */
+	text_color.red 	    = terminal.config.term_text_color_red;
+	text_color.green    = terminal.config.term_text_color_green;
+	text_color.blue 	= terminal.config.term_text_color_blue;
+    text_color.alpha    = terminal.config.term_text_color_alpha;
+	vte_terminal_set_color_foreground(VTE_TERMINAL(terminal.vte), &text_color);
 
-	/* saturation (contrast) */
-	vte_terminal_set_background_saturation(VTE_TERMINAL(terminal.vte), terminal.config.term_transparent);
-    
+	/* antialias, background image, transparent, double-buffer  - dropped vte2.9 */
+
 	/* default window manager */
 	if(terminal.config.win_layer == 1){
  		/* create above window (단 윈도 매니져가 우선) */
@@ -128,25 +125,36 @@ void Terminal_Set(Terminal terminal)
 		gtk_window_set_resizable(GTK_WINDOW(terminal.window),  FALSE);
 	}
 
-	/* set forcus (TODO: modify TRUE FALSE ) */
+	/* forcus */
 	if(terminal.config.win_focus == FALSE){
 		gtk_window_set_accept_focus(GTK_WINDOW(terminal.window), FALSE);
         gtk_window_set_urgency_hint(GTK_WINDOW(terminal.window), FALSE);
         gtk_window_set_focus_on_map(GTK_WINDOW(terminal.window), FALSE);
 	}
 
-	/* cusor blink (default FALSE) */
-    if(terminal.config.term_blink_curser == TRUE){
+	/* cusor */
+    if(terminal.config.term_cursor_blink == TRUE){
 	    vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(terminal.vte), VTE_CURSOR_BLINK_ON);
-    }else if(terminal.config.term_blink_curser == TRUE){
+    }else if(terminal.config.term_cursor_blink == TRUE){
 	    vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(terminal.vte), VTE_CURSOR_BLINK_OFF);
     }else{
 	    vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(terminal.vte), VTE_CURSOR_BLINK_SYSTEM);
     }
 
-	/* double-buffer (anti font fold) */
-	gtk_widget_set_double_buffered(terminal.vte, terminal.config.term_double_buffer);
-	
+    vte_terminal_set_cursor_shape(VTE_TERMINAL(terminal.vte), terminal.config.term_cursor_shape);
+
+	cursor_color.red 	= terminal.config.term_cursor_color_red;
+	cursor_color.green  = terminal.config.term_cursor_color_green;
+	cursor_color.blue 	= terminal.config.term_cursor_color_blue;
+    cursor_color.alpha  = terminal.config.term_cursor_color_alpha;
+	vte_terminal_set_color_cursor(VTE_TERMINAL(terminal.vte), &cursor_color);
+
+    cursor_color_text.red   = 1.0 - terminal.config.term_cursor_color_red;
+    cursor_color_text.green = 1.0 - terminal.config.term_cursor_color_green;
+    cursor_color_text.blue  = 1.0 - terminal.config.term_cursor_color_blue;
+    cursor_color_text.alpha = 1.0 - terminal.config.term_cursor_color_alpha;
+	vte_terminal_set_color_cursor_foreground(VTE_TERMINAL(terminal.vte), &cursor_color_text);
+
 	/* bell */
 	vte_terminal_set_audible_bell(VTE_TERMINAL(terminal.vte), terminal.config.term_audio_bell);
 
@@ -176,14 +184,12 @@ void Terminal_Set(Terminal terminal)
     /* hyperlink */
     vte_terminal_match_add_gregex(VTE_TERMINAL(terminal.vte), g_regex_new(HTTP_REGEXP, 0, 0, NULL), 0);
 
-    /* usleep(250000); */
-
     /* 일단 터미널과 윈도우 위젯들을 보여준다 */
     gtk_widget_show_all(terminal.window);
 
     /* 감추게 FALSE 이면 감추게 한다 
      * 걍 gtk_widget_show를 쓰면 안되는 이유가 끊기기 때문에 따로 gtk_widget_hide를 써야 */
     if(terminal.config.win_visible == FALSE){
-        gtk_widget_hide_all(terminal.window);
+        gtk_widget_hide(terminal.window);
     }
 }/*}}}*/

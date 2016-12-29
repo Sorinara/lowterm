@@ -28,7 +28,8 @@ int key_filter_grab_code(char *key_symbol_string, KeyEvent *key_data)
         return KEY_SYMBOL_UNKNOWN;
     }
 
-    if((key_data->key_code = XKeysymToKeycode(GDK_DISPLAY(), key_symbol)) == 0){
+	/* in GTK3, "GDK_DISPLAY()" is deplicated. replace to "GDK_DISPLAY_XDISPLAY(gdk_display_get_default())" */
+    if((key_data->key_code = XKeysymToKeycode(GDK_DISPLAY_XDISPLAY(gdk_display_get_default()), key_symbol)) == 0){
         return KEY_CODE_UNKNOWN;
     }
 
@@ -58,10 +59,10 @@ void key_filter_grab_mask_delmiter(char *string, int *string_length, char **next
 int key_filter_grab_mask_parse(char *key_chain, int key_string_length, KeyEvent *key_data)
 {/*{{{*/
     unsigned int mask_old;
-    int return_mask;
+    /* int return_mask; */
 
     mask_old        = key_data->key_mask;
-    return_mask     = 0;
+    /* return_mask     = 0; */
 
     if(*key_chain == '\0'){
         return 0;
@@ -72,7 +73,7 @@ int key_filter_grab_mask_parse(char *key_chain, int key_string_length, KeyEvent 
             if(strncmp(key_chain, "AltMask", 7)         == 0 ||\
                strncmp(key_chain, "AltMask", 7)         == 0){
                 key_data->key_mask  |= Mod1Mask;
-                return_mask          = KEY_MASK_ALT;
+                /* return_mask          = KEY_MASK_ALT; */
                 /* fprintf(stderr, "Alt Flag\n"); */
             }
             break;
@@ -80,28 +81,28 @@ int key_filter_grab_mask_parse(char *key_chain, int key_string_length, KeyEvent 
             if(strncmp(key_chain, "ShiftMask", 9)       == 0 ||\
                strncmp(key_chain, "ShiftMask", 9)       == 0){
                 key_data->key_mask  |= ShiftMask;
-                return_mask          = KEY_MASK_SHIFT;
+                /* return_mask          = KEY_MASK_SHIFT; */
                 /* fprintf(stderr, "Shift Flag\n"); */
             }
 
             if(strncmp(key_chain, "HyperMask", 9)       == 0 ||\
                strncmp(key_chain, "HyperMask", 9)       == 0){
                 key_data->key_mask  |= Mod3Mask;
-                return_mask          = KEY_MASK_HYPER;
+                /* return_mask          = KEY_MASK_HYPER; */
                 /* fprintf(stderr, "Hyper Flag\n"); */
             }
 
             if(strncmp(key_chain, "SuperMask", 9)       == 0 ||\
                strncmp(key_chain, "SuperMask", 9)       == 0){
                 key_data->key_mask  |= Mod4Mask;
-                return_mask          = KEY_MASK_SUPER;
+                /* return_mask          = KEY_MASK_SUPER; */
                 /* fprintf(stderr, "Super Flag\n"); */
             }
             break;
         case 10:
             if(strncmp(key_chain, "NumLockMask", 10)    == 0){
                 key_data->key_mask  |= Mod2Mask;
-                return_mask          = KEY_MASK_NUM_LOCK;
+                /* return_mask          = KEY_MASK_NUM_LOCK; */
                 /* fprintf(stderr, "Num_Lock Flag\n"); */
             }
             break;
@@ -109,21 +110,21 @@ int key_filter_grab_mask_parse(char *key_chain, int key_string_length, KeyEvent 
             if(strncmp(key_chain, "ControlMask", 11)    == 0 ||\
                strncmp(key_chain, "ControlMask", 11)    == 0){
                 key_data->key_mask  |= ControlMask;
-                return_mask          = KEY_MASK_CONTROL;
+                /* return_mask          = KEY_MASK_CONTROL; */
                 /* fprintf(stderr, "Control Flag\n"); */
             }
             break;
         case 12:
             if(strncmp(key_chain, "CapsLockMask", 12)   == 0){
                 key_data->key_mask  |= LockMask;
-                return_mask          = KEY_MASK_CAPS_LOCK;
+                /* return_mask          = KEY_MASK_CAPS_LOCK; */
                 /* fprintf(stderr, "Caps_Lock Flag\n"); */
             }
             break;
         case 14:
             if(strncmp(key_chain, "ScrollLockMask", 14) == 0){
                 key_data->key_mask  |= Mod5Mask;
-                return_mask          = KEY_MASK_SCROLL_LOCK;
+                /* return_mask          = KEY_MASK_SCROLL_LOCK; */
                 /* fprintf(stderr, "Scroll_Lock Flag\n"); */
             }
             break;
@@ -174,7 +175,10 @@ int key_filter_grab(GdkWindow *root_window, char *key_mask, char *key_symbol_str
     fprintf(stderr, "[%-25s][%-10s] => Mask : 0x%x, Keycode: %d \n", key_mask, key_symbol_string, key_data->key_mask, key_data->key_code);
 
 	gdk_error_trap_push();
-	XGrabKey(GDK_DISPLAY(), key_data->key_code, key_data->key_mask, GDK_WINDOW_XID(root_window), True, GrabModeAsync, GrabModeAsync);
+
+	/* in GTK3, "GDK_DISPLAY()" is deplicated. replace to "GDK_DISPLAY_XDISPLAY(gdk_display_get_default())" */
+	XGrabKey(GDK_DISPLAY_XDISPLAY(gdk_display_get_default()), key_data->key_code, key_data->key_mask, GDK_WINDOW_XID(root_window), True, GrabModeAsync, GrabModeAsync);
+
 	gdk_flush();
 
 	if(gdk_error_trap_pop()){

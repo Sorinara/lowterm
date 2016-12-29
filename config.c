@@ -38,14 +38,6 @@ void Config_Print_Param_Debug(Config config)
         fprintf(stderr, "--win-pos [y]            : %d\n", config.win_pos_y);
     }
 
-    if(config.win_size_width != 0){
-        fprintf(stderr, "--win-size [width]       : %d\n", config.win_size_width);
-    }
-    
-    if(config.win_size_height != 0){
-        fprintf(stderr, "--win-size [height]      : %d\n", config.win_size_height);
-    }
-
     if(config.win_layer != 0){
         fprintf(stderr, "--win-layer              : %d\n", config.win_layer);
     }
@@ -78,6 +70,14 @@ void Config_Print_Param_Debug(Config config)
         fprintf(stderr, "--win-move-end           : %s\n", config.win_animation_move_end);
     }
 
+    if(config.term_size_width != 0){
+        fprintf(stderr, "--term-size [width]       : %d\n", config.term_size_width);
+    }
+    
+    if(config.term_size_height != 0){
+        fprintf(stderr, "--term-size [height]      : %d\n", config.term_size_height);
+    }
+
     if(config.term_font != NULL){
         fprintf(stderr, "--term-font              : %s\n", config.term_font);
     }
@@ -86,40 +86,33 @@ void Config_Print_Param_Debug(Config config)
         fprintf(stderr, "--term-font-bold         : %s\n", config.term_font_bold ? "True" : "False");
     }
 
-    if(config.term_antialias != 0){
-        fprintf(stderr, "--term-antialias         : %s\n", config.term_antialias ? "True" : "False");
-    }
-
     if(config.term_locale != NULL){
         fprintf(stderr, "--term-locale            : %s\n", config.term_locale);
     }
 
-    if(config.term_blink_curser!= 0){
-        fprintf(stderr, "--term-blink-curser      : %s\n", config.term_blink_curser ? "True" : "False");
+    if(config.term_cursor_blink != 0){
+        fprintf(stderr, "--term-blink-curser      : %d\n", config.term_cursor_blink);
     }
 
-    if(config.term_double_buffer != 0){
-        fprintf(stderr, "--term-double-buffer     : %s\n", config.term_double_buffer ? "True" : "False");
+    if(config.term_cursor_shape != 0){
+        fprintf(stderr, "--term-blink-curser      : %s\n", config.term_cursor_shape ? "True" : "False");
     }
 
     if(config.term_audio_bell != 0){
         fprintf(stderr, "--term-audio-bell        : %s\n", config.term_audio_bell ? "True" : "False");
     }
 
-    if(config.term_image != NULL){
-        fprintf(stderr, "--term-image             : %s\n", config.term_image);
-    }
-
-    if(config.term_transparent != 0){
-        fprintf(stderr, "--term-transparent       : %f\n", config.term_transparent);
-    }
-
-    fprintf(stderr, "--term-backcolor [red]   : %d\n", config.term_backcolor_red);
-    fprintf(stderr, "--term-backcolor [green] : %d\n", config.term_backcolor_green);
-    fprintf(stderr, "--term-backcolor [blue]  : %d\n", config.term_backcolor_blue);
-    fprintf(stderr, "--term-textcolor [red]   : %d\n", config.term_textcolor_red);
-    fprintf(stderr, "--term-textcolor [green] : %d\n", config.term_textcolor_green);
-    fprintf(stderr, "--term-textcolor [blue]  : %d\n", config.term_textcolor_blue);
+    fprintf(stderr, "--term-backcolor [red]   : %f\n", config.term_back_color_red);
+    fprintf(stderr, "--term-backcolor [green] : %f\n", config.term_back_color_green);
+    fprintf(stderr, "--term-backcolor [blue]  : %f\n", config.term_back_color_blue);
+    fprintf(stderr, "--term-backcolor [alpha] : %f\n", config.term_back_color_alpha);
+    fprintf(stderr, "--term-textcolor [red]   : %f\n", config.term_text_color_red);
+    fprintf(stderr, "--term-textcolor [green] : %f\n", config.term_text_color_green);
+    fprintf(stderr, "--term-textcolor [blue]  : %f\n", config.term_text_color_blue);
+    fprintf(stderr, "--term-textcolor [alpha] : %f\n", config.term_text_color_alpha);
+    fprintf(stderr, "--term-cursor-color [green] : %f\n", config.term_cursor_color_green);
+    fprintf(stderr, "--term-cursor-color [blue]  : %f\n", config.term_cursor_color_blue);
+    fprintf(stderr, "--term-cursor-color [alpha] : %f\n", config.term_cursor_color_alpha);
 }/*}}}*/
 
 int Config_Parameter_Parser(char *execute, char delimiter, Param *buffer, int param_count)
@@ -164,7 +157,6 @@ int Config_Parameter_Get(int argc, char *argv[], char **filepath, Config *config
         {"win-bind-key",                required_argument,  0, 'k'},
         {"win-visible",                 no_argument,        0, 'v'},
         {"win-pos",                     required_argument,  0, 'p'},
-        {"win-size",                    required_argument,  0, 's'},
         {"win-layer",                   required_argument,  0, 'L'},
         {"win-focus",                   no_argument,        0, 'F'},
         {"win-show-pager",              no_argument,        0, 'P'},
@@ -173,15 +165,14 @@ int Config_Parameter_Get(int argc, char *argv[], char **filepath, Config *config
         {"win-animation-delay",         required_argument,  0, 'd'},
         {"win-animation-move-start",    required_argument,  0, 'S'},
         {"win-animation-move-end",      required_argument,  0, 'E'},
+        {"term-size",                   required_argument,  0, 's'},
         {"term-font",                   required_argument,  0, 'f'},
         {"term-font-bold",              no_argument,        0, 'b'},
-        {"term-antialias",              no_argument,        0, 'a'},
         {"term-locale",                 required_argument,  0, 'l'},
         {"term-blink-curser",           no_argument,        0, 'B'},
         {"term-double-buffer",          no_argument,        0, 'D'},
         {"term-audio-bell",             no_argument,        0, 'A'},
         {"term-image",                  required_argument,  0, 'i'},
-        {"term-transparent",            required_argument,  0, 't'},
         {"term-backcolor",              required_argument,  0, 'C'},
         {"term-textcolor",              required_argument,  0, 'c'},
         {0, 0, 0, 0}
@@ -197,8 +188,6 @@ int Config_Parameter_Get(int argc, char *argv[], char **filepath, Config *config
     options.win_visible                 = TRUE;
 	options.win_pos_x                   = -1;
 	options.win_pos_y                   = -1;
-	options.win_size_height             = 500;
-	options.win_size_width              = 500;
 	options.win_layer                   = 0;
 	options.win_focus                   = TRUE;
     options.win_show_pager              = TRUE;
@@ -207,24 +196,29 @@ int Config_Parameter_Get(int argc, char *argv[], char **filepath, Config *config
     options.win_animation_delay         = 1000;
     options.win_animation_move_start    = "left";
     options.win_animation_move_end      = "left";
+	options.term_size_height            = 500;
+	options.term_size_width             = 500;
 	options.term_font                   = "";
 	options.term_font_bold              = TRUE;
-	options.term_antialias              = TRUE;
 	options.term_locale                 = "";
-	options.term_blink_curser           = TRUE;
-	options.term_double_buffer          = TRUE;
+	options.term_cursor_blink           = TRUE;
+	options.term_cursor_shape           = 0;
 	options.term_audio_bell             = TRUE;
-	options.term_image                  = "";
-	options.term_transparent            = 0;
-	options.term_backcolor_red          = 0x0000;
-	options.term_backcolor_green        = 0x0000;
-	options.term_backcolor_blue 	    = 0x0000;
-	options.term_textcolor_red 		    = 0xffff;
-	options.term_textcolor_green 	    = 0xffff;
-	options.term_textcolor_blue 	    = 0xffff;
+	options.term_back_color_red         = 0.0;
+	options.term_back_color_green       = 0.0;
+	options.term_back_color_blue 	    = 0.0;
+	options.term_back_color_alpha       = 1.0;
+	options.term_text_color_red 	    = 1.0;
+	options.term_text_color_green 	    = 1.0;
+	options.term_text_color_blue 	    = 1.0;
+	options.term_text_color_alpha       = 0.0;
+	options.term_cursor_color_red       = 0.0;
+	options.term_cursor_color_green 	= 0.0;
+	options.term_cursor_color_blue 	    = 0.0;
+	options.term_cursor_color_alpha     = 0.0;
 
     while (1){
-        c = getopt_long(argc, argv, "r:n:e:c:l:f:BC:i:t:k:d:S:E:s:p:L:HFaUDAPTw", long_options, &option_index);
+        c = getopt_long(argc, argv, "r:n:e:c:l:f:BC:i:t:k:d:S:E:s:p:L:HFaUDAPTwuo", long_options, &option_index);
 
         if (c == -1)
             break;
@@ -273,8 +267,8 @@ int Config_Parameter_Get(int argc, char *argv[], char **filepath, Config *config
                 memset(param_list, 0x00, sizeof(param_list));
 
                 if(Config_Parameter_Parser(optarg, 'x', param_list, 2) == 2){
-                    options.win_size_width  = atoi(param_list[0].data);
-                    options.win_size_height = atoi(param_list[1].data);
+                    options.term_size_width  = atoi(param_list[0].data);
+                    options.term_size_height = atoi(param_list[1].data);
                 }
                 break;
             case 'L':
@@ -308,42 +302,53 @@ int Config_Parameter_Get(int argc, char *argv[], char **filepath, Config *config
                 options.term_font_bold = FALSE;
                 break;
             case 'a':
-                options.term_antialias = FALSE;
                 break;
             case 'l':
                 options.term_locale = strdup(optarg);
                 break;
             case 'B':
-                options.term_blink_curser = FALSE;
+                options.term_cursor_blink = FALSE;
+                break;
+            case 'u':
+                options.term_cursor_shape = FALSE;
                 break;
             case 'D':
-                options.term_double_buffer = FALSE;
                 break;
             case 'A':
                 options.term_audio_bell = FALSE;
                 break;
             case 'i':
-                options.term_image = strdup(optarg);
                 break;
             case 't':
-                options.term_transparent = atof(optarg);
                 break;
             case 'C':
                 memset(param_list, 0x00, sizeof(param_list));
 
-                if(Config_Parameter_Parser(optarg, ',', param_list, 3) == 3){
-                    options.term_backcolor_red   = strtol(param_list[0].data, NULL, 16);
-                    options.term_backcolor_green = strtol(param_list[1].data, NULL, 16);
-                    options.term_backcolor_blue  = strtol(param_list[2].data, NULL, 16);
+                if(Config_Parameter_Parser(optarg, ',', param_list, 4) == 4){
+                    options.term_back_color_red   = strtod(param_list[0].data, NULL);
+                    options.term_back_color_green = strtod(param_list[1].data, NULL);
+                    options.term_back_color_blue  = strtod(param_list[2].data, NULL);
+                    options.term_back_color_alpha = strtod(param_list[3].data, NULL);
                 }
                 break;
             case 'c':
                 memset(param_list, 0x00, sizeof(param_list));
 
-                if(Config_Parameter_Parser(optarg, ',', param_list, 3) == 3){
-                    options.term_textcolor_red   = strtol(param_list[0].data, NULL, 16);
-                    options.term_textcolor_green = strtol(param_list[1].data, NULL, 16);
-                    options.term_textcolor_blue  = strtol(param_list[2].data, NULL, 16);
+                if(Config_Parameter_Parser(optarg, ',', param_list, 4) == 4){
+                    options.term_text_color_red   = strtod(param_list[0].data, NULL);
+                    options.term_text_color_green = strtod(param_list[1].data, NULL);
+                    options.term_text_color_blue  = strtod(param_list[2].data, NULL);
+                    options.term_text_color_alpha = strtod(param_list[3].data, NULL);
+                }
+                break;
+            case 'o':
+                memset(param_list, 0x00, sizeof(param_list));
+
+                if(Config_Parameter_Parser(optarg, ',', param_list, 4) == 4){
+                    options.term_cursor_color_red   = strtod(param_list[0].data, NULL);
+                    options.term_cursor_color_green = strtod(param_list[1].data, NULL);
+                    options.term_cursor_color_blue  = strtod(param_list[2].data, NULL);
+                    options.term_cursor_color_alpha = strtod(param_list[3].data, NULL);
                 }
                 break;
         }
@@ -363,30 +368,28 @@ int Config_File_Table_Size(cfg_t **cfg, const char *config_path)
     }
 
 	cfg_opt_t terminal_opts[]={ /*{{{*/
-		CFG_STR("name", 				    "temp", 	                CFGF_NONE),
-		CFG_STR("execute", 				    "/bin/sh", 	                CFGF_NONE),
-		CFG_STR_LIST("win_bind_key", 		"{}", 		                CFGF_NONE),
-		CFG_BOOL("win_visible",				TRUE,		                CFGF_NONE),
-		CFG_INT_LIST("win_pos", 			"{0,0}", 			        CFGF_NONE),
-		CFG_INT_LIST("win_size", 			"{500,500}", 		        CFGF_NONE), /*1021이하여야함*/
-		CFG_INT("win_layer", 				0, 			                CFGF_NONE),
-		CFG_BOOL("win_focus",				TRUE,		                CFGF_NONE),
-		CFG_BOOL("win_show_pager",			TRUE,		                CFGF_NONE),
-		CFG_BOOL("win_show_taskbar", 		TRUE, 		                CFGF_NONE),
-		CFG_BOOL("win_show_all_workspace", 	FALSE, 		                CFGF_NONE),
-        CFG_INT("win_animation_delay",      1000,                       CFGF_NONE),
-        CFG_STR_LIST("win_animation_move",  "{left,left}",              CFGF_NONE),
-		CFG_STR("term_font", 				"", 		                CFGF_NONE),
-		CFG_BOOL("term_font_bold", 			TRUE, 		                CFGF_NONE),
-		CFG_BOOL("term_antialias", 			TRUE, 		                CFGF_NONE),
-		CFG_STR("term_locale", 				"",  		                CFGF_NONE),
-		CFG_BOOL("term_blink_curser", 		TRUE, 		                CFGF_NONE),
-		CFG_BOOL("term_double_buffer", 		TRUE, 		                CFGF_NONE),
-		CFG_BOOL("term_audio_bell", 		TRUE, 		                CFGF_NONE),
-		CFG_STR("term_image", 			    "",                         CFGF_NONE),
-		CFG_FLOAT("term_transparent", 	    0, 	                        CFGF_NONE),
-		CFG_INT_LIST("term_backcolor", 		"{0xffff, 0xffff, 0xffff}", CFGF_NONE),
-		CFG_INT_LIST("term_textcolor", 		"{0x0000, 0x0000, 0x0000}", CFGF_NONE),
+		CFG_STR("name", 				    "temp", 	            CFGF_NONE),
+		CFG_STR("execute", 				    "/bin/sh", 	            CFGF_NONE),
+		CFG_STR_LIST("win_bind_key", 		"{}", 		            CFGF_NONE),
+		CFG_BOOL("win_visible",				TRUE,		            CFGF_NONE),
+		CFG_INT_LIST("win_pos", 			"{0, 0}", 			    CFGF_NONE),
+		CFG_INT("win_layer", 				0, 			            CFGF_NONE),
+		CFG_BOOL("win_focus",				TRUE,		            CFGF_NONE),
+		CFG_BOOL("win_show_pager",			TRUE,		            CFGF_NONE),
+		CFG_BOOL("win_show_taskbar", 		TRUE, 		            CFGF_NONE),
+		CFG_BOOL("win_show_all_workspace", 	FALSE, 		            CFGF_NONE),
+        CFG_INT("win_animation_delay",      1000,                   CFGF_NONE),
+        CFG_STR_LIST("win_animation_move",  "{left, left}",         CFGF_NONE),
+		CFG_INT_LIST("term_size", 			"{500, 500}", 		    CFGF_NONE), /*1021이하여야함*/
+		CFG_STR("term_font", 				"", 		            CFGF_NONE),
+		CFG_BOOL("term_font_bold", 			TRUE, 		            CFGF_NONE),
+		CFG_STR("term_locale", 				"",  		            CFGF_NONE),
+		CFG_BOOL("term_cursor_blink", 		TRUE, 		            CFGF_NONE),
+		CFG_INT("term_cursor_shape", 		TRUE, 		            CFGF_NONE),
+		CFG_BOOL("term_audio_bell", 		TRUE, 		            CFGF_NONE),
+		CFG_FLOAT_LIST("term_back_color",   "{1.0, 1.0, 1.0, 1.0}", CFGF_NONE),
+		CFG_FLOAT_LIST("term_text_color",   "{0.0, 0.0, 0.0, 0.0}", CFGF_NONE),
+		CFG_FLOAT_LIST("term_cursor_color", "{0.0, 0.0, 0.0, 0.0}", CFGF_NONE),
 		CFG_END()
 	}; /*}}}*/
 
@@ -398,7 +401,7 @@ int Config_File_Table_Size(cfg_t **cfg, const char *config_path)
 	*cfg = cfg_init(opts, CFGF_NONE);
 	
 	if(cfg_parse(*cfg, config_path) == CFG_PARSE_ERROR){
-		fprintf(stderr, "기본적인 내용이 %s 파일에 저장되었습니다!", config_path);
+		fprintf(stderr, "설정파일(%s)에 오류가 있습니다.", config_path);
 		return -2;
 	}
 
@@ -422,33 +425,36 @@ int Config_File_Table_Data(cfg_t *cfg, int table_index, Config *config)
     config->win_bind_key_mask           = strdup(cfg_getnstr(cfg_table, "win_bind_key", 0));
     config->win_bind_key 		        = strdup(cfg_getnstr(cfg_table, "win_bind_key", 1));
     config->term_locale                 = strdup(cfg_getstr(cfg_table, "term_locale"));
-    config->term_image                  = strdup(cfg_getstr(cfg_table, "term_image"));
     config->win_animation_move_start    = strdup(cfg_getnstr(cfg_table, "win_animation_move", 0));
     config->win_animation_move_end      = strdup(cfg_getnstr(cfg_table, "win_animation_move", 1));
-
-    /* FLOAT */	
-    config->term_transparent            = cfg_getfloat(cfg_table, "term_transparent");
 
     /* INTEGER */
     config->win_pos_x 		            = cfg_getnint(cfg_table, "win_pos", 0); 
     config->win_pos_y 		            = cfg_getnint(cfg_table, "win_pos", 1);
-    config->win_size_height 		    = cfg_getnint(cfg_table, "win_size", 0);
-    config->win_size_width 		        = cfg_getnint(cfg_table, "win_size", 1);
+    config->term_size_width 		    = cfg_getnint(cfg_table, "term_size", 0);
+    config->term_size_height 		    = cfg_getnint(cfg_table, "term_size", 1);
     config->win_layer 			        = cfg_getint(cfg_table, "win_layer");
     config->win_animation_delay         = cfg_getint(cfg_table, "win_animation_delay");
-    config->term_backcolor_red 	        = cfg_getnint(cfg_table, "term_backcolor", 0);
-    config->term_backcolor_blue 	    = cfg_getnint(cfg_table, "term_backcolor", 1);
-    config->term_backcolor_green 	    = cfg_getnint(cfg_table, "term_backcolor", 2);
-    config->term_textcolor_red          = cfg_getnint(cfg_table, "term_textcolor", 0);
-    config->term_textcolor_green        = cfg_getnint(cfg_table, "term_textcolor", 1);
-    config->term_textcolor_blue 	    = cfg_getnint(cfg_table, "term_textcolor", 2);
+    config->term_cursor_shape           = cfg_getint(cfg_table, "term_cursor_shape");
+
+    /* FLOAT(DOUBLE) */
+    config->term_back_color_red         = cfg_getnfloat(cfg_table, "term_back_color", 0);
+    config->term_back_color_green 	    = cfg_getnfloat(cfg_table, "term_back_color", 1);
+    config->term_back_color_blue 	    = cfg_getnfloat(cfg_table, "term_back_color", 2);
+    config->term_back_color_alpha       = cfg_getnfloat(cfg_table, "term_back_color", 3);
+    config->term_text_color_red         = cfg_getnfloat(cfg_table, "term_text_color", 0);
+    config->term_text_color_green       = cfg_getnfloat(cfg_table, "term_text_color", 1);
+    config->term_text_color_blue 	    = cfg_getnfloat(cfg_table, "term_text_color", 2);
+    config->term_text_color_alpha       = cfg_getnfloat(cfg_table, "term_text_color", 3);
+    config->term_cursor_color_red       = cfg_getnfloat(cfg_table, "term_cursor_color", 0);
+    config->term_cursor_color_green     = cfg_getnfloat(cfg_table, "term_cursor_color", 1);
+    config->term_cursor_color_blue 	    = cfg_getnfloat(cfg_table, "term_cursor_color", 2);
+    config->term_cursor_color_alpha     = cfg_getnfloat(cfg_table, "term_cursor_color", 3);
 
     /* BOOL */
     config->term_font_bold 		        = cfg_getbool(cfg_table, "term_font_bold");
-    config->term_blink_curser 		    = cfg_getbool(cfg_table, "term_blink_curser");
+    config->term_cursor_blink 		    = cfg_getbool(cfg_table, "term_cursor_blink");
     config->term_audio_bell 		    = cfg_getbool(cfg_table, "term_audio_bell");
-    config->term_antialias 		        = cfg_getbool(cfg_table, "term_antialias");
-    config->term_double_buffer 	        = cfg_getbool(cfg_table, "term_double_buffer");
     config->win_show_taskbar            = cfg_getbool(cfg_table, "win_show_taskbar");
     config->win_show_all_workspace      = cfg_getbool(cfg_table, "win_show_all_workspace");
     config->win_focus		            = cfg_getbool(cfg_table, "win_focus");
@@ -469,7 +475,6 @@ void Config_Free(LowTerm lowterm)
         free(lowterm.terminal[i].config.execute);
         free(lowterm.terminal[i].config.term_font);
         free(lowterm.terminal[i].config.term_locale);
-        free(lowterm.terminal[i].config.term_image);
         free(lowterm.terminal[i].config.win_animation_move_start);
         free(lowterm.terminal[i].config.win_animation_move_end);
         free(lowterm.terminal[i].config.win_bind_key);

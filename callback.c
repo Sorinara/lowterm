@@ -34,9 +34,12 @@ void terminal_mouse_paste(GtkWidget *widget)
 
 int  terminal_window_move(GtkWidget *window, int pos_x, int pos_y, char *status, char *direction)
 {/*{{{*/
-    GdkScreen *gscr;
-    int scr_size_x,
-        scr_size_y;
+	GdkDisplay   *dpy;
+	GdkWindow    *win;
+	GdkMonitor   *monitor;
+	GdkRectangle  geometry;
+    int screen_width,
+        screen_height;
     int i;
 
     if(direction == NULL){
@@ -48,40 +51,45 @@ int  terminal_window_move(GtkWidget *window, int pos_x, int pos_y, char *status,
     }
 
     /* get screen size */
-    gscr        = gdk_screen_get_default();
-    scr_size_x  = gdk_screen_get_width(gscr);
-    scr_size_y  = gdk_screen_get_height(gscr);
+	dpy     = gtk_widget_get_display(window);
+	win     = gtk_widget_get_window(window);
+	monitor = gdk_display_get_monitor_at_window(dpy, win);
+
+	gdk_monitor_get_geometry(monitor, &geometry);
+
+	screen_width  = geometry.width;
+	screen_height = geometry.height;
 
     //printf("%s %s\n", status, direction);
     if(strcmp(status, "Show") == 0){
         /* from down to up */
-        /* if(strcmp(direction, "up") == 0){ */
-        /*     for(i = scr_size_y - pos_y;i >= pos_y; i-= MOVE_UNIT_SIZE){ */
-        /*         gtk_window_move(GTK_WINDOW(window), pos_x, i); */
-        /*         gdk_flush(); */
-        /*     } */
-        /* } */
+        if(strcmp(direction, "up") == 0){
+            for(i = screen_height - pos_y;i >= pos_y; i-= MOVE_UNIT_SIZE){
+                gtk_window_move(GTK_WINDOW(window), pos_x, i);
+                gdk_flush();
+            }
+        }
         /* from up to down */
-        /* else if(strcmp(direction, "down") == 0){ */
-        /*     for(i = 0;i <= pos_y; i+= MOVE_UNIT_SIZE){ */
-        /*         gtk_window_move(GTK_WINDOW(window), pos_x, i); */
-        /*         gdk_flush(); */
-        /*     } */
-        /* } */
+        else if(strcmp(direction, "down") == 0){
+            for(i = 0;i <= pos_y; i+= MOVE_UNIT_SIZE){
+                gtk_window_move(GTK_WINDOW(window), pos_x, i);
+                gdk_flush();
+            }
+        }
         /* from right to left */
-        /* else if(strcmp(direction, "left") == 0){ */
-        /*     for(i = scr_size_x - pos_x;i >= pos_x;i -= MOVE_UNIT_SIZE){ */
-        /*         gtk_window_move(GTK_WINDOW(window), i, pos_y); */
-        /*         gdk_flush(); */
-        /*     } */
-        /* } */
+        else if(strcmp(direction, "left") == 0){
+            for(i = screen_width - pos_x;i >= pos_x;i -= MOVE_UNIT_SIZE){
+                gtk_window_move(GTK_WINDOW(window), i, pos_y);
+                gdk_flush();
+            }
+        }
         /* from right to left */
-        /* else if(strcmp(direction, "right") == 0){ */
-        /*     for(i=0;i<=pos_x;i += MOVE_UNIT_SIZE){ */
-        /*         gtk_window_move(GTK_WINDOW(window), i, pos_y); */
-        /*         gdk_flush(); */
-        /*     } */
-        /* } */
+        else if(strcmp(direction, "right") == 0){
+            for(i=0;i<=pos_x;i += MOVE_UNIT_SIZE){
+                gtk_window_move(GTK_WINDOW(window), i, pos_y);
+                gdk_flush();
+            }
+        }
 
         /* 원위치로 이동 */
         if(pos_x >= 0 && pos_y >= 0){
@@ -89,48 +97,49 @@ int  terminal_window_move(GtkWidget *window, int pos_x, int pos_y, char *status,
         }    
     }else if(strcmp(status, "Hide") == 0){
         /* from down to up */
-        /* if(strcmp(direction, "up") == 0){ */
-        /*     for(i = pos_y;i >= 0; i-= MOVE_UNIT_SIZE){ */
-        /*         gtk_window_move(GTK_WINDOW(window), pos_x, i); */
-        /*         gdk_flush(); */
-        /*         usleep(WINDOW_DELAY); */
-        /*     } */
-        /* } */
+        if(strcmp(direction, "up") == 0){
+            for(i = pos_y;i >= 0; i-= MOVE_UNIT_SIZE){
+                gtk_window_move(GTK_WINDOW(window), pos_x, i);
+                gdk_flush();
+                usleep(WINDOW_DELAY);
+            }
+        }
         /* from up to down */
-        /* else if(strcmp(direction, "down") == 0){ */
-        /*     for(i = pos_y;i <= scr_size_y;i += MOVE_UNIT_SIZE){ */
-        /*         gtk_window_move(GTK_WINDOW(window), pos_x, i); */
-        /*         gdk_flush(); */
-        /*         usleep(WINDOW_DELAY); */
-        /*     } */
-        /* } */
+        else if(strcmp(direction, "down") == 0){
+            for(i = pos_y;i <= screen_height;i += MOVE_UNIT_SIZE){
+                gtk_window_move(GTK_WINDOW(window), pos_x, i);
+                gdk_flush();
+                usleep(WINDOW_DELAY);
+            }
+        }
         /* from right to left */
-        /* else if(strcmp(direction, "left") == 0){ */
-        /*     for(i=pos_x;i>=0;i -= MOVE_UNIT_SIZE){ */
-        /*         gtk_window_move(GTK_WINDOW(window), i, pos_y); */
-        /*         gdk_flush(); */
-        /*         usleep(WINDOW_DELAY); */
-        /*     } */
-        /* } */
+        else if(strcmp(direction, "left") == 0){
+            for(i=pos_x;i>=0;i -= MOVE_UNIT_SIZE){
+                gtk_window_move(GTK_WINDOW(window), i, pos_y);
+                gdk_flush();
+                usleep(WINDOW_DELAY);
+            }
+        }
         /* from right to left */
-        /* else if(strcmp(direction, "right") == 0){ */
-        /*     for(i=pos_x;i<=scr_size_x;i += MOVE_UNIT_SIZE){ */
-        /*         gtk_window_move(GTK_WINDOW(window), i, pos_y); */
-        /*         gdk_flush(); */
-        /*         usleep(WINDOW_DELAY); */
-        /*     } */
-        /* } */
+        else if(strcmp(direction, "right") == 0){
+            for(i=pos_x;i<=screen_width;i += MOVE_UNIT_SIZE){
+                gtk_window_move(GTK_WINDOW(window), i, pos_y);
+                gdk_flush();
+                usleep(WINDOW_DELAY);
+            }
+        }
     }
+
+    gtk_window_move(GTK_WINDOW(window), pos_x, pos_y);
 
     return 0;
 }/*}}}*/
 
 int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
 {/*{{{*/
-    int terminal_x,
-        terminal_y,
+    int column,
+        row,
         tag;
-    GtkBorder *style_border;
     char *url_match,
          *cmd_run;
 
@@ -140,16 +149,9 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
 
     switch(event->button){
         case 1: // left mouse button press 
-            /* vte_terminal_get_padding((VteTerminal *)widget, &terminal_x, &terminal_y); */
-            /* printf("OX: %d OY: %d\n", terminal_x, terminal_y); */
-            gtk_widget_style_get(widget, "inner-border", &style_border, NULL);
-            terminal_x = style_border->left + style_border->right;
-            terminal_y = style_border->top  + style_border->bottom;
-            /* printf("NX: %d NY: %d\n", terminal_x, terminal_y); */
-            url_match = vte_terminal_match_check((VteTerminal *)widget,
-                                                 (event->x - terminal_y) /((VteTerminal *)widget)->char_width,
-                                                 (event->y - terminal_y) /((VteTerminal *)widget)->char_height,
-                                                  &tag);
+            column     = event->x / vte_terminal_get_char_width(VTE_TERMINAL(widget));
+            row        = event->y / vte_terminal_get_char_height(VTE_TERMINAL(widget));
+            url_match  = vte_terminal_match_check((VteTerminal *)widget, column, row, &tag);
 
             if(url_match != NULL){
                 if((cmd_run = (char *)calloc(strlen(url_match) + strlen(BROWSER_NAME) + 5, sizeof(char))) == NULL){
@@ -160,7 +162,7 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
                 if(!(strcasecmp(url_match + strlen(url_match) - 3, "jpg"))  || \
                    !(strcasecmp(url_match + strlen(url_match) - 4, "jpeg")) || \
                    !(strcasecmp(url_match + strlen(url_match) - 3, "gif"))  || \
-                   !(strcasecmp(url_match + strlen(url_match) - 3, "png"))     ){
+                   !(strcasecmp(url_match + strlen(url_match) - 3, "png"))  ){
                     sprintf(cmd_run, "%s '%s'&", IMAGEVIEWER_NAME, url_match);
                 }
                 else{
@@ -195,8 +197,6 @@ void Terminal_Show_Hide(GtkWidget *widget, gpointer user_data_param)
 
     /* fprintf(stderr, "Terminal Changed : %d (%s)\n", terminal->id, terminal->visible ? "TRUE" : "FALSE"); */
     if(terminal->visible == TRUE){
-        gtk_window_set_default_size(GTK_WINDOW(terminal->window), terminal->config.win_size_width, terminal->config.win_size_height);
-        gtk_window_set_resizable(GTK_WINDOW(terminal->window), FALSE);
         terminal_window_move(terminal->window, terminal->config.win_pos_x, terminal->config.win_pos_y,
                              "Show", terminal->config.win_animation_move_start);
 
@@ -215,7 +215,7 @@ void Terminal_Show_Hide(GtkWidget *widget, gpointer user_data_param)
                              "Hide", terminal->config.win_animation_move_end);
 
         /* Show -> Hidden */
-        gtk_widget_hide_all(terminal->window);
+        gtk_widget_hide(terminal->window);
 
         if(terminal->config.win_focus == 1){
             /* Restore before show window */
@@ -296,14 +296,15 @@ gboolean Terminal_Focus_Out(GtkWidget *widget, GdkEvent *event, gpointer user_da
 
 void Terminal_Exit(GtkWidget *widget, gpointer user_data_param)
 {/*{{{*/
-    Terminal *terminal;
+    /* Terminal *terminal; */
 
-    terminal = (Terminal *)user_data_param;
+    /* terminal = (Terminal *)user_data_param; */
 
-    gtk_widget_destroy(terminal->vte);
-    gtk_widget_destroy(terminal->window);
+    /* crash! gtk3.0 */
+    /* gtk_widget_destroy(terminal->vte); */
+    /* gtk_widget_destroy(terminal->window); */
 
-    printf("[Terminal %d] Exit Code : %p\n", terminal->id, terminal->exit_code);
+    /* printf("[Terminal %d] Exit Code : %p\n", terminal->id, terminal->exit_code); */
     /* key bind, malloc free 하는거 나중에 추가하셈 */
     //g_free(terminal);
     gtk_main_quit();
