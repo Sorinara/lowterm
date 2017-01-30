@@ -224,7 +224,6 @@ void Terminal_Show_Hide(GtkWidget *widget, gpointer user_data_param)
             /* 비지블스택의 마지막(last)를 최상위 윈도우로 두면, Alt+Tab으로 창 이동이 안된다. */
             /* gtk_window_present(GTK_WINDOW(terminal_stack_last->window)); */
             /* Stack_Print(*(terminal->visible_list_pointer)); */
-            fprintf(stderr, "1: HD focus in : %d, %d\n", gtk_widget_is_focus(widget), gtk_widget_is_focus(terminal_stack_last->vte));
         }
 
         terminal->visible = TRUE;
@@ -270,9 +269,9 @@ gboolean Terminal_Focus_In(GtkWidget *widget, GdkEvent *event, gpointer user_dat
         /* gtk_window_set_focus(GTK_WINDOW(terminal_stack_first->window),  terminal_stack_first->vte); */
         /* must be use once gtk_window_present() */
         gtk_window_present(GTK_WINDOW(terminal_stack_last->window));
-        fprintf(stderr, "2: TP focus in  : %d,%d\n", gtk_widget_is_focus(widget), gtk_widget_is_focus(terminal_stack_last->vte));
+        /* fprintf(stderr, "2: TP focus in  : %d,%d\n", gtk_widget_is_focus(widget), gtk_widget_is_focus(terminal_stack_last->vte)); */
     }else{
-        fprintf(stderr, "2: OP focus in  : %d,%d\n", gtk_widget_is_focus(widget), gtk_widget_is_focus(terminal_stack_last->vte));
+        /* fprintf(stderr, "2: OP focus in  : %d,%d\n", gtk_widget_is_focus(widget), gtk_widget_is_focus(terminal_stack_last->vte)); */
     }
 
     return FALSE;
@@ -288,8 +287,7 @@ gboolean Terminal_Focus_Out(GtkWidget *widget, GdkEvent *event, gpointer user_da
     }
 
     Stack_Last(terminal->visible_list_pointer, (void **)&terminal_stack_last);
-
-    fprintf(stderr, "3: focus Out : %d %d\n\n", gtk_widget_is_focus(widget), gtk_widget_is_focus(terminal_stack_last->vte));
+    /* fprintf(stderr, "3: focus Out : %d %d\n\n", gtk_widget_is_focus(widget), gtk_widget_is_focus(terminal_stack_last->vte)); */
 
     return FALSE;
 }/*}}}*/

@@ -196,8 +196,8 @@ int Config_Parameter_Get(int argc, char *argv[], char **filepath, Config *config
     options.win_animation_delay         = 1000;
     options.win_animation_move_start    = "left";
     options.win_animation_move_end      = "left";
-	options.term_size_height            = 500;
-	options.term_size_width             = 500;
+	options.term_size_height            = 50;
+	options.term_size_width             = 50;
 	options.term_font                   = "";
 	options.term_font_bold              = TRUE;
 	options.term_locale                 = "";
@@ -234,8 +234,7 @@ int Config_Parameter_Get(int argc, char *argv[], char **filepath, Config *config
                 }
 
                 *filepath = strdup(optarg);
-
-                return 1;
+                break;
             case 'n':
                 options.name = strdup(optarg);
                 break;
@@ -370,7 +369,7 @@ int Config_File_Table_Size(cfg_t **cfg, const char *config_path)
 	cfg_opt_t terminal_opts[]={ /*{{{*/
 		CFG_STR("name", 				    "temp", 	            CFGF_NONE),
 		CFG_STR("execute", 				    "/bin/sh", 	            CFGF_NONE),
-		CFG_STR_LIST("win_bind_key", 		"{}", 		            CFGF_NONE),
+		CFG_STR_LIST("win_bind_key", 		"{\"\",\"\"}", 		    CFGF_NONE),
 		CFG_BOOL("win_visible",				TRUE,		            CFGF_NONE),
 		CFG_INT_LIST("win_pos", 			"{0, 0}", 			    CFGF_NONE),
 		CFG_INT("win_layer", 				0, 			            CFGF_NONE),
@@ -486,22 +485,21 @@ void Config_Free(LowTerm lowterm)
 
 int Config_Get(int argc, char *argv[], LowTerm *lowterm)
 { /*{{{*/
-    int param_status;
     char *filepath;
     int table_count,
         i;
+    Config config_default;
     cfg_t *cfg;
 
 	if((lowterm->terminal = (Terminal *)calloc(1, sizeof(Terminal))) == NULL){
 		return -1;
 	}
 
-    if((param_status = Config_Parameter_Get(argc, argv, &filepath, &(lowterm->terminal[0].config))) < 0){
-        return -2;
-    }
+    Config_Parameter_Get(argc, argv, &filepath, &config_default);
 
-    if(param_status == 0){
-        table_count = 1;
+    if(*filepath == NULL){
+        lowterm->terminal[0].config = config_default;
+        table_count                 = 1;
     }else{
         table_count = Config_File_Table_Size(&cfg, filepath);
         free(filepath);
