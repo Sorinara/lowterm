@@ -1,6 +1,24 @@
 #include "lowterm.h"
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 
 #define PALETTE_SIZE 16
+
+static void child_callback(VteTerminal *vte, GPid pid, GError *error, gpointer user_data)
+{/*{{{*/
+	Terminal *terminal = (Terminal *)user_data;
+
+    if(!vte){
+        return;
+    }
+    
+    if(pid == -1){
+		gtk_widget_destroy(GTK_WIDGET(terminal->window));
+        g_error_free(error);
+    }
+
+    vte_terminal_watch_child(VTE_TERMINAL(vte), pid);
+}/*}}}*/
 
 void Terminal_New(int terminal_index, Terminal *terminal)
 {/*{{{*/
@@ -8,7 +26,6 @@ void Terminal_New(int terminal_index, Terminal *terminal)
     GdkVisual *visual;
     char **arg,
          event_name[EVENT_NAME_MAX];
-    GPid pid;
 
     if(terminal->config.execute == NULL){
         terminal->config.execute = getenv("SHELL");
@@ -31,8 +48,7 @@ void Terminal_New(int terminal_index, Terminal *terminal)
     }
 
     g_shell_parse_argv(terminal->config.execute, NULL, &arg, NULL);
-    vte_terminal_spawn_sync(VTE_TERMINAL(terminal->vte), VTE_PTY_DEFAULT, getenv("HOME"), arg, NULL, G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, &pid, NULL, NULL);
-    vte_terminal_watch_child(VTE_TERMINAL(terminal->vte), pid);
+    vte_terminal_spawn_async(VTE_TERMINAL(terminal->vte), VTE_PTY_DEFAULT, getenv("HOME"), arg, NULL, 0, NULL, NULL, NULL, -1, NULL, child_callback, terminal);
     g_strfreev(arg);
 
     terminal->id        = terminal_index;
@@ -89,14 +105,6 @@ void Terminal_Set(Terminal terminal)
 		vte_terminal_set_font(VTE_TERMINAL(terminal.vte), pango_font_description_from_string(terminal.config.term_font));
 	}
 
-	/* locale */
-	if(strcmp(terminal.config.term_locale,"") != 0){
-		vte_terminal_set_encoding(VTE_TERMINAL(terminal.vte), terminal.config.term_locale, NULL);
-    }
-
-	/* font bold (default TRUE) */
-	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal.vte), terminal.config.term_font_bold);
-
 	/* terminal backgound color */
     vte_terminal_set_default_colors(VTE_TERMINAL(terminal.vte));
 
@@ -113,7 +121,7 @@ void Terminal_Set(Terminal terminal)
     text_color.alpha    = terminal.config.term_text_color_alpha;
 	vte_terminal_set_color_foreground(VTE_TERMINAL(terminal.vte), &text_color);
 
-	/* antialias, background image, transparent, double-buffer  - dropped vte2.9 */
+	/* antialias, background image, transparent, double-buffer, encoding, font bold  - dropped */
 
 	/* default window manager */
 	if(terminal.config.win_layer == 1){
@@ -182,8 +190,9 @@ void Terminal_Set(Terminal terminal)
 	vte_terminal_set_delete_binding(VTE_TERMINAL(terminal.vte), VTE_ERASE_DELETE_SEQUENCE);
 
     /* hyperlink */
-    vte_terminal_match_add_gregex(VTE_TERMINAL(terminal.vte), g_regex_new(HTTP_REGEXP, 0, 0, NULL), 0);
-
+    VteRegex* regex = vte_regex_new_for_match(HTTP_REGEXP, -1, PCRE2_UTF | PCRE2_MULTILINE | PCRE2_CASELESS, NULL);
+	vte_terminal_match_add_regex(VTE_TERMINAL(terminal.vte), regex, 0);
+    
     /* 일단 터미널과 윈도우 위젯들을 보여준다 */
     gtk_widget_show_all(terminal.window);
 

@@ -24,7 +24,8 @@ void memory_pointer_dump(void *data, const int size)
 
 void terminal_mouse_copy(GtkWidget *widget) 	
 {/*{{{*/
-    vte_terminal_copy_clipboard((VteTerminal *)widget);
+    /* vte_terminal_copy_clipboard((VteTerminal *)widget); */
+    vte_terminal_copy_clipboard_format((VteTerminal *)widget, VTE_FORMAT_TEXT);
 }/*}}}*/
 
 void terminal_mouse_paste(GtkWidget *widget)
@@ -66,28 +67,28 @@ int  terminal_window_move(GtkWidget *window, int pos_x, int pos_y, char *status,
         if(strcmp(direction, "up") == 0){
             for(i = screen_height - pos_y;i >= pos_y; i-= MOVE_UNIT_SIZE){
                 gtk_window_move(GTK_WINDOW(window), pos_x, i);
-                gdk_flush();
+                /* gdk_display_flush(); */
             }
         }
         /* from up to down */
         else if(strcmp(direction, "down") == 0){
             for(i = 0;i <= pos_y; i+= MOVE_UNIT_SIZE){
                 gtk_window_move(GTK_WINDOW(window), pos_x, i);
-                gdk_flush();
+                /* gdk_display_flush(); */
             }
         }
         /* from right to left */
         else if(strcmp(direction, "left") == 0){
             for(i = screen_width - pos_x;i >= pos_x;i -= MOVE_UNIT_SIZE){
                 gtk_window_move(GTK_WINDOW(window), i, pos_y);
-                gdk_flush();
+                /* gdk_display_flush(); */
             }
         }
         /* from right to left */
         else if(strcmp(direction, "right") == 0){
             for(i=0;i<=pos_x;i += MOVE_UNIT_SIZE){
                 gtk_window_move(GTK_WINDOW(window), i, pos_y);
-                gdk_flush();
+                /* gdk_display_flush(); */
             }
         }
 
@@ -100,32 +101,32 @@ int  terminal_window_move(GtkWidget *window, int pos_x, int pos_y, char *status,
         if(strcmp(direction, "up") == 0){
             for(i = pos_y;i >= 0; i-= MOVE_UNIT_SIZE){
                 gtk_window_move(GTK_WINDOW(window), pos_x, i);
-                gdk_flush();
-                usleep(WINDOW_DELAY);
+                /* gdk_display_flush(); */
+                /* usleep(WINDOW_DELAY); */
             }
         }
         /* from up to down */
         else if(strcmp(direction, "down") == 0){
             for(i = pos_y;i <= screen_height;i += MOVE_UNIT_SIZE){
                 gtk_window_move(GTK_WINDOW(window), pos_x, i);
-                gdk_flush();
-                usleep(WINDOW_DELAY);
+                /* gdk_display_flush(); */
+                /* usleep(WINDOW_DELAY); */
             }
         }
         /* from right to left */
         else if(strcmp(direction, "left") == 0){
             for(i=pos_x;i>=0;i -= MOVE_UNIT_SIZE){
                 gtk_window_move(GTK_WINDOW(window), i, pos_y);
-                gdk_flush();
-                usleep(WINDOW_DELAY);
+                /* gdk_display_flush(); */
+                /* usleep(WINDOW_DELAY); */
             }
         }
         /* from right to left */
         else if(strcmp(direction, "right") == 0){
             for(i=pos_x;i<=screen_width;i += MOVE_UNIT_SIZE){
                 gtk_window_move(GTK_WINDOW(window), i, pos_y);
-                gdk_flush();
-                usleep(WINDOW_DELAY);
+                /* gdk_display_flush(); */
+                /* usleep(WINDOW_DELAY); */
             }
         }
     }
@@ -137,9 +138,6 @@ int  terminal_window_move(GtkWidget *window, int pos_x, int pos_y, char *status,
 
 int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
 {/*{{{*/
-    int column,
-        row,
-        tag;
     char *url_match,
          *cmd_run;
 
@@ -149,9 +147,7 @@ int  Terminal_Mouse(GtkWidget *widget, GdkEventButton *event)
 
     switch(event->button){
         case 1: // left mouse button press 
-            column     = event->x / vte_terminal_get_char_width(VTE_TERMINAL(widget));
-            row        = event->y / vte_terminal_get_char_height(VTE_TERMINAL(widget));
-            url_match  = vte_terminal_match_check((VteTerminal *)widget, column, row, &tag);
+            url_match = vte_terminal_match_check_event((VteTerminal *)widget, ((GdkEvent*)event), NULL);
 
             if(url_match != NULL){
                 if((cmd_run = (char *)calloc(strlen(url_match) + strlen(BROWSER_NAME) + 5, sizeof(char))) == NULL){
@@ -294,9 +290,13 @@ gboolean Terminal_Focus_Out(GtkWidget *widget, GdkEvent *event, gpointer user_da
 
 void Terminal_Exit(GtkWidget *widget, gpointer user_data_param)
 {/*{{{*/
-    /* Terminal *terminal; */
+    Terminal *terminal;
 
-    /* terminal = (Terminal *)user_data_param; */
+    terminal = (Terminal *)user_data_param;
+
+    if(terminal->visible_list_pointer->sp == 0){
+        gtk_main_quit();
+    }
 
     /* crash! gtk3.0 */
     /* gtk_widget_destroy(terminal->vte); */
@@ -305,5 +305,4 @@ void Terminal_Exit(GtkWidget *widget, gpointer user_data_param)
     /* printf("[Terminal %d] Exit Code : %p\n", terminal->id, terminal->exit_code); */
     /* key bind, malloc free 하는거 나중에 추가하셈 */
     //g_free(terminal);
-    gtk_main_quit();
 }/*}}}*/

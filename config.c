@@ -496,8 +496,9 @@ int Config_Get(int argc, char *argv[], LowTerm *lowterm)
 	}
 
     Config_Parameter_Get(argc, argv, &filepath, &config_default);
+    printf("filepath : %p\n", filepath);
 
-    if(*filepath == NULL){
+    if(filepath == NULL){
         lowterm->terminal[0].config = config_default;
         table_count                 = 1;
     }else{

@@ -174,16 +174,16 @@ int key_filter_grab(GdkWindow *root_window, char *key_mask, char *key_symbol_str
 
     fprintf(stderr, "[%-25s][%-10s] => Mask : 0x%x, Keycode: %d \n", key_mask, key_symbol_string, key_data->key_mask, key_data->key_code);
 
-	gdk_error_trap_push();
+	/* gdk_error_trap_push(); */
 
 	/* in GTK3, "GDK_DISPLAY()" is deplicated. replace to "GDK_DISPLAY_XDISPLAY(gdk_display_get_default())" */
 	XGrabKey(GDK_DISPLAY_XDISPLAY(gdk_display_get_default()), key_data->key_code, key_data->key_mask, GDK_WINDOW_XID(root_window), True, GrabModeAsync, GrabModeAsync);
 
-	gdk_flush();
+    /* gdk_display_flush(); */
 
-	if(gdk_error_trap_pop()){
-        return KEY_CODE_GRAB_ERROR;
-	}
+	/* if(gdk_error_trap_pop()){ */
+    /*     return KEY_CODE_GRAB_ERROR; */
+	/* } */
 
     return 0;
 }/*}}}*/
