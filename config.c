@@ -496,7 +496,7 @@ int Config_Get(int argc, char *argv[], LowTerm *lowterm)
 	}
 
     Config_Parameter_Get(argc, argv, &filepath, &config_default);
-    printf("filepath : %p\n", filepath);
+    printf("filepath : %s\n", filepath);
 
     if(filepath == NULL){
         lowterm->terminal[0].config = config_default;
@@ -504,8 +504,9 @@ int Config_Get(int argc, char *argv[], LowTerm *lowterm)
     }else{
         table_count = Config_File_Table_Size(&cfg, filepath);
         free(filepath);
+        free(lowterm->terminal);
 
-        if((lowterm->terminal = (Terminal *)realloc(lowterm->terminal, table_count * sizeof(Terminal))) == NULL){
+        if((lowterm->terminal = (Terminal *)calloc(table_count, sizeof(Terminal))) == NULL){
             cfg_free(cfg);
             free(lowterm->terminal);
             return -3;
